@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
-#include <emulator.h>
+#include <stdlib.h>
+#include "emulator.h"
 
 
 void UnimplementedInstruction(State* state) {
@@ -24,10 +25,10 @@ int Emulate8080(State* state) {
         state-> pc += 2;
         break;   
     case 0x02:
-        uint16_t offset = (state->b << 8) | (state->c);
-        state->memory[offset] = state->a;
-        state->pc += 1;
-        break;
+        // uint16_t offset = (state->b << 8) | (state->c);
+        // state->memory[offset] = state->a;
+        // state->pc += 1;
+        // break;
     case 0x03: UnimplementedInstruction(state); break;
     case 0x04:
         
@@ -786,10 +787,4 @@ int Emulate8080(State* state) {
         UnimplementedInstruction(state);
         break;
     }
-}
-
-int main(int argc, char** argv) {
-    struct ConditionBits conditionBit;
-    printf("Output %d", conditionBit.z);
-    return 0;
 }

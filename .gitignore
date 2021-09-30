@@ -1,3 +1,6 @@
 .vscode
 SpaceInvaders
 out
+*.o
+emulator
+testEmulate8080
