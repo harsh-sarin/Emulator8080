@@ -19,10 +19,10 @@ int Emulate8080(State* state) {
     switch (*opcode)
     {
     case 0x00: break;
-    case 0x01: //LXI B,immediate address
+    case 0x01: //LXI B,immediate data
         state->c = opcode[1];
         state->b = opcode[2];
-        state-> pc += 2;
+        state-> pc += 3;
         break;   
     case 0x02:
         // uint16_t offset = (state->b << 8) | (state->c);
@@ -30,17 +30,28 @@ int Emulate8080(State* state) {
         // state->pc += 1;
         // break;
     case 0x03: UnimplementedInstruction(state); break;
-    case 0x04:
-        
+    case 0x04: //INR B
+        //Revisit: Condition bits are impacted as well.
+        state->b += 1;
+        state->pc += 1; 
         break;
-    case 0x05:
-        UnimplementedInstruction(state);
+    case 0x05: //DCR B
+        //Revisit: Condition bits are impacted as well.
+        state->b -= 1;
+        state->pc += 1; 
         break;
-    case 0x06:
-        UnimplementedInstruction(state);
+    case 0x06: //MVI B,immediate data
+        state->b = opcode[1];
+        state->pc += 2;
         break;
-    case 0x07:
-        UnimplementedInstruction(state);
+    case 0x07: //RLC
+        if ((state->a & 0x80) == 0x80) {
+            state->cc.cy = 1;
+        } else {
+            state->cc.cy = 0;
+        }
+        state->a = (state->a << 1) | (state->a >> (8-1));
+        state->pc += 1;
         break;
     case 0x08:
         UnimplementedInstruction(state);
