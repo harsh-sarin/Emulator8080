@@ -1,7 +1,64 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "emulator.h"
+
+bool is_even_parity(uint8_t some_data) {
+    uint8_t count = 0, mask = 1;
+    for (int i=0; i < sizeof(uint8_t)*8; i++) {
+        if (some_data & (mask << i)) {
+            count++;
+        }
+    }
+    return (count % 2 == 0);
+} 
+
+bool is_even_parity_16bit(uint16_t some_data) {
+    uint8_t count = 0;
+    uint16_t mask = 1;
+    for (int i=0; i < sizeof(uint16_t)*8; i++) {
+        if (some_data & (mask << i)) {
+            count++;
+        }
+    }
+    return (count % 2 == 0);
+} 
+
+void decrement_register(uint8_t* some_register, State* some_state) {
+    (*some_register)--;
+    // TODO: Use the state to update the condition bits
+}
+
+
+void single_inr_register(State* some_state, uint8_t* some_register) {
+    uint8_t unmodified_val = *some_register;
+    (*some_register)++;
+    uint8_t modified_val = *some_register;
+    some_state->cc.z = (modified_val == 0x00);
+    some_state->cc.s = ((modified_val & 0x80) == 0x80);
+    some_state->cc.p = is_even_parity(modified_val);
+    // if bit at pos 3 before modification is 1 and after modificaiton is 0,
+    // it implies a carry came out of pos 3 after the increment.
+    if ((unmodified_val & 0x08) == 0x08 && (modified_val & 0x08) == 0x00) {
+       some_state->cc.ac = 1;     
+    }
+}
+
+void single_inr_memory(State* some_state) {
+    uint16_t offset = (some_state->h << 8) | (some_state->l);
+    uint16_t unmodified_val = some_state->memory[offset];
+    some_state->memory[offset]++;
+    uint16_t modified_val = some_state->memory[offset];
+    some_state->cc.z = (modified_val == 0x0000);
+    some_state->cc.s = ((modified_val & 0x8000) == 0x8000);
+    some_state->cc.p = is_even_parity_16bit(modified_val);
+    // if bit at pos 3 before modification is 1 and after modificaiton is 0,
+    // it implies a carry came out of pos 3 after the increment.
+    if ((unmodified_val & 0x0008) == 0x0008 && (modified_val & 0x0008) == 0x0000) {
+       some_state->cc.ac = 1;     
+    }
+}
 
 
 void UnimplementedInstruction(State* state) {
@@ -9,11 +66,6 @@ void UnimplementedInstruction(State* state) {
     exit(1);
 }
 
-/*
-TODOs:
-- Figure out what instructions are used by space invaders, and implemente those first.
-- One way is to create an array of type boolean with 256 capacity. Match an opcode to an array index and set it to true when the case is fired.
-*/
 int Emulate8080(State* state) {
     unsigned char *opcode = &state->memory[state->pc];
     switch (*opcode)
@@ -32,12 +84,11 @@ int Emulate8080(State* state) {
     case 0x03: UnimplementedInstruction(state); break;
     case 0x04: //INR B
         //Revisit: Condition bits are impacted as well.
-        state->b += 1;
+        single_inr_register(state, &state->b);
         state->pc += 1; 
         break;
     case 0x05: //DCR B
-        //Revisit: Condition bits are impacted as well.
-        state->b -= 1;
+        decrement_register(&state->b, state);
         state->pc += 1; 
         break;
     case 0x06: //MVI B,immediate data
@@ -45,13 +96,11 @@ int Emulate8080(State* state) {
         state->pc += 2;
         break;
     case 0x07: //RLC
-        if ((state->a & 0x80) == 0x80) {
-            state->cc.cy = 1;
-        } else {
-            state->cc.cy = 0;
+        {
+            state->cc.cy = ((state->a & 0x80) == 0x80);
+            state->a = (state->a << 1) | (state->a >> (8-1));
+            state->pc += 1;
         }
-        state->a = (state->a << 1) | (state->a >> (8-1));
-        state->pc += 1;
         break;
     case 0x08:
         UnimplementedInstruction(state);
@@ -66,13 +115,16 @@ int Emulate8080(State* state) {
         UnimplementedInstruction(state);
         break;
     case 0x0c:
-        UnimplementedInstruction(state);
+        single_inr_register(state, &state->c);
+        state->pc += 1; 
         break;
-    case 0x0d:
-        UnimplementedInstruction(state);
+    case 0x0d: //DCR C
+        decrement_register(&state->c, state);
+        state->pc += 1; 
         break;
-    case 0x0e:
-        UnimplementedInstruction(state);
+    case 0x0e: //MVI C, immediate data
+        state->c = opcode[1];
+        state->pc += 2;
         break;
     case 0x0f:
         UnimplementedInstruction(state);
@@ -90,7 +142,8 @@ int Emulate8080(State* state) {
         UnimplementedInstruction(state);
         break;
     case 0x14:
-        UnimplementedInstruction(state);
+        single_inr_register(state, &state->d);
+        state->pc += 1; 
         break;
     case 0x15:
         UnimplementedInstruction(state);
@@ -114,7 +167,8 @@ int Emulate8080(State* state) {
         UnimplementedInstruction(state);
         break;
     case 0x1c:
-        UnimplementedInstruction(state);
+        single_inr_register(state, &state->e);
+        state->pc += 1; 
         break;
     case 0x1d:
         UnimplementedInstruction(state);
@@ -138,7 +192,8 @@ int Emulate8080(State* state) {
         UnimplementedInstruction(state);
         break;
     case 0x24:
-        UnimplementedInstruction(state);
+        single_inr_register(state, &state->h);
+        state->pc += 1; 
         break;
     case 0x25:
         UnimplementedInstruction(state);
@@ -162,7 +217,8 @@ int Emulate8080(State* state) {
         UnimplementedInstruction(state);
         break;
     case 0x2c:
-        UnimplementedInstruction(state);
+        single_inr_register(state, &state->l);
+        state->pc += 1; 
         break;
     case 0x2d:
         UnimplementedInstruction(state);
@@ -186,7 +242,8 @@ int Emulate8080(State* state) {
         UnimplementedInstruction(state);
         break;
     case 0x34:
-        UnimplementedInstruction(state);
+        single_inr_memory(state);
+        state->pc += 1; 
         break;
     case 0x35:
         UnimplementedInstruction(state);
@@ -210,7 +267,8 @@ int Emulate8080(State* state) {
         UnimplementedInstruction(state);
         break;
     case 0x3c:
-        UnimplementedInstruction(state);
+        single_inr_register(state, &state->a);
+        state->pc += 1; 
         break;
     case 0x3d:
         UnimplementedInstruction(state);
