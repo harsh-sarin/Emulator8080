@@ -292,7 +292,9 @@ int main(int argc, char** argv) {
 	}
 	printf("=============================\n");
 	for (int i=0; i < 256; i++) {
-		printf("%x:%d\n", (i & 0xff), opcodes_used[i]);
+		if (opcodes_used[i]) {
+			printf("%x\n", (i & 0xff));
+		}
 	}
 	return 0;
 }
