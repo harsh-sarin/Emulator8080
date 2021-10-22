@@ -4,39 +4,46 @@
 #include <stdbool.h>
 #include "emulator.h"
 
-bool is_even_parity(uint8_t some_data) {
+bool is_even_parity(uint8_t some_data)
+{
     uint8_t count = 0, mask = 1;
-    for (int i=0; i < sizeof(uint8_t)*8; i++) {
-        if (some_data & (mask << i)) {
+    for (int i = 0; i < sizeof(uint8_t) * 8; i++)
+    {
+        if (some_data & (mask << i))
+        {
             count++;
         }
     }
     return (count % 2 == 0);
-} 
+}
 
-bool is_even_parity_16bit(uint16_t some_data) {
+bool is_even_parity_16bit(uint16_t some_data)
+{
     uint8_t count = 0;
     uint16_t mask = 1;
-    for (int i=0; i < sizeof(uint16_t)*8; i++) {
-        if (some_data & (mask << i)) {
+    for (int i = 0; i < sizeof(uint16_t) * 8; i++)
+    {
+        if (some_data & (mask << i))
+        {
             count++;
         }
     }
     return (count % 2 == 0);
-} 
+}
 
-void single_dcr_register(State* some_state, uint8_t* some_register) {
+void single_dcr_register(State *some_state, uint8_t *some_register)
+{
     uint8_t unmodified_val = *some_register;
     (*some_register)--;
     uint8_t modified_val = *some_register;
     some_state->cc.z = (modified_val == 0x00);
     some_state->cc.s = ((modified_val & 0x80) == 0x80);
     some_state->cc.p = is_even_parity(modified_val);
-    some_state->cc.ac = 0; //Assumption: no aux carry in decrement operation
+    some_state->cc.ac = 0; // Assumption: no aux carry in decrement operation
 }
 
-
-void single_inr_register(State* some_state, uint8_t* some_register) {
+void single_inr_register(State *some_state, uint8_t *some_register)
+{
     uint8_t unmodified_val = *some_register;
     (*some_register)++;
     uint8_t modified_val = *some_register;
@@ -45,12 +52,14 @@ void single_inr_register(State* some_state, uint8_t* some_register) {
     some_state->cc.p = is_even_parity(modified_val);
     // if bit at pos 3 before modification is 1 and after modificaiton is 0,
     // it implies a carry came out of pos 3 after the increment.
-    if ((unmodified_val & 0x08) == 0x08 && (modified_val & 0x08) == 0x00) {
-       some_state->cc.ac = 1;     
+    if ((unmodified_val & 0x08) == 0x08 && (modified_val & 0x08) == 0x00)
+    {
+        some_state->cc.ac = 1;
     }
 }
 
-void single_inr_memory(State* some_state) {
+void single_inr_memory(State *some_state)
+{
     uint16_t offset = (some_state->h << 8) | (some_state->l);
     uint16_t unmodified_val = some_state->memory[offset];
     some_state->memory[offset]++;
@@ -60,12 +69,14 @@ void single_inr_memory(State* some_state) {
     some_state->cc.p = is_even_parity_16bit(modified_val);
     // if bit at pos 3 before modification is 1 and after modificaiton is 0,
     // it implies a carry came out of pos 3 after the increment.
-    if ((unmodified_val & 0x0008) == 0x0008 && (modified_val & 0x0008) == 0x0000) {
-       some_state->cc.ac = 1;     
+    if ((unmodified_val & 0x0008) == 0x0008 && (modified_val & 0x0008) == 0x0000)
+    {
+        some_state->cc.ac = 1;
     }
 }
 
-void single_dcr_memory(State* some_state) {
+void single_dcr_memory(State *some_state)
+{
     uint16_t offset = (some_state->h << 8) | (some_state->l);
     uint16_t unmodified_val = some_state->memory[offset];
     some_state->memory[offset]--;
@@ -73,50 +84,54 @@ void single_dcr_memory(State* some_state) {
     some_state->cc.z = (modified_val == 0x0000);
     some_state->cc.s = ((modified_val & 0x8000) == 0x8000);
     some_state->cc.p = is_even_parity_16bit(modified_val);
-    some_state->cc.ac = 0; //Assumption: no aux carry in decrement operation
+    some_state->cc.ac = 0; // Assumption: no aux carry in decrement operation
 }
 
-
-void UnimplementedInstruction(State* state) {
+void UnimplementedInstruction(State *state)
+{
     printf("Error: Unimplemented instruction: %x", state->memory[state->pc]);
     exit(1);
 }
 
-int Emulate8080(State* state) {
+int Emulate8080(State *state)
+{
     unsigned char *opcode = &state->memory[state->pc];
     switch (*opcode)
     {
-    case 0x00: break;
-    case 0x01: //LXI B,immediate data
+    case 0x00:
+        break;
+    case 0x01: // LXI B,immediate data
         state->c = opcode[1];
         state->b = opcode[2];
-        state-> pc += 3;
-        break;   
+        state->pc += 3;
+        break;
     case 0x02:
         // uint16_t offset = (state->b << 8) | (state->c);
         // state->memory[offset] = state->a;
         // state->pc += 1;
         // break;
-    case 0x03: UnimplementedInstruction(state); break;
-    case 0x04: //INR B
+    case 0x03:
+        UnimplementedInstruction(state);
+        break;
+    case 0x04: // INR B
         single_inr_register(state, &state->b);
-        state->pc += 1; 
+        state->pc += 1;
         break;
-    case 0x05: //DCR B
+    case 0x05: // DCR B
         single_dcr_register(state, &state->b);
-        state->pc += 1; 
+        state->pc += 1;
         break;
-    case 0x06: //MVI B,immediate data
+    case 0x06: // MVI B,immediate data
         state->b = opcode[1];
         state->pc += 2;
         break;
-    case 0x07: //RLC
-        {
-            state->cc.cy = ((state->a & 0x80) == 0x80);
-            state->a = (state->a << 1) | (state->a >> (8-1));
-            state->pc += 1;
-        }
-        break;
+    case 0x07: // RLC
+    {
+        state->cc.cy = ((state->a & 0x80) == 0x80);
+        state->a = (state->a << 1) | (state->a >> (8 - 1));
+        state->pc += 1;
+    }
+    break;
     case 0x08:
         UnimplementedInstruction(state);
         break;
@@ -131,13 +146,13 @@ int Emulate8080(State* state) {
         break;
     case 0x0c:
         single_inr_register(state, &state->c);
-        state->pc += 1; 
+        state->pc += 1;
         break;
-    case 0x0d: //DCR C
+    case 0x0d: // DCR C
         single_dcr_register(state, &state->c);
-        state->pc += 1; 
+        state->pc += 1;
         break;
-    case 0x0e: //MVI C, immediate data
+    case 0x0e: // MVI C, immediate data
         state->c = opcode[1];
         state->pc += 2;
         break;
@@ -158,11 +173,11 @@ int Emulate8080(State* state) {
         break;
     case 0x14:
         single_inr_register(state, &state->d);
-        state->pc += 1; 
+        state->pc += 1;
         break;
     case 0x15:
         single_dcr_register(state, &state->d);
-        state->pc += 1; 
+        state->pc += 1;
         break;
     case 0x16:
         UnimplementedInstruction(state);
@@ -184,11 +199,11 @@ int Emulate8080(State* state) {
         break;
     case 0x1c:
         single_inr_register(state, &state->e);
-        state->pc += 1; 
+        state->pc += 1;
         break;
     case 0x1d:
         single_dcr_register(state, &state->e);
-        state->pc += 1; 
+        state->pc += 1;
         break;
     case 0x1e:
         UnimplementedInstruction(state);
@@ -208,20 +223,53 @@ int Emulate8080(State* state) {
     case 0x23:
         UnimplementedInstruction(state);
         break;
-    case 0x24:
+    case 0x24: // INR H
         single_inr_register(state, &state->h);
-        state->pc += 1; 
+        state->pc += 1;
         break;
-    case 0x25:
+    case 0x25: // DCR H
         single_dcr_register(state, &state->h);
-        state->pc += 1; 
+        state->pc += 1;
         break;
     case 0x26:
         UnimplementedInstruction(state);
         break;
-    case 0x27:
-        UnimplementedInstruction(state);
-        break;
+    case 0x27: // DAA
+    {
+        uint8_t lower_order = state->a & 0x0F;
+        if (lower_order > 0x09 || state->cc.ac == 1)
+        {
+            uint8_t unmodified_val = state->a;
+            state->a += 0x06;
+            if ((unmodified_val & 0x08) == 0x08 && (state->a & 0x08) == 0x00)
+            {
+                state->cc.ac = 1;
+            }
+            else
+            {
+                state->cc.ac = 0;
+            }
+        }
+        uint8_t higher_order = state->a & 0xF0;
+        if (higher_order > 0x09 || state->cc.cy == 1)
+        {
+            uint8_t unmodified_val = state->a;
+            state->a += 0x60;
+            if ((unmodified_val & 0x80) == 0x80 && (state->a & 0x80) == 0x00)
+            {
+                state->cc.cy = 1;
+            }
+            else
+            {
+                state->cc.cy = 0;
+            }
+        }
+        state->cc.z = (state->a == 0x00);
+        state->cc.s = ((state->a & 0x80) == 0x80);
+        state->cc.p = is_even_parity(state->a);
+        state->pc += 1;
+    }
+    break;
     case 0x28:
         UnimplementedInstruction(state);
         break;
@@ -236,17 +284,18 @@ int Emulate8080(State* state) {
         break;
     case 0x2c:
         single_inr_register(state, &state->l);
-        state->pc += 1; 
+        state->pc += 1;
         break;
     case 0x2d:
         single_dcr_register(state, &state->l);
-        state->pc += 1; 
+        state->pc += 1;
         break;
     case 0x2e:
         UnimplementedInstruction(state);
         break;
     case 0x2f:
-        UnimplementedInstruction(state);
+        state->a = ~state->a;
+        state->pc += 1;
         break;
     case 0x30:
         UnimplementedInstruction(state);
@@ -262,7 +311,7 @@ int Emulate8080(State* state) {
         break;
     case 0x34:
         single_inr_memory(state);
-        state->pc += 1; 
+        state->pc += 1;
         break;
     case 0x35:
         single_dcr_memory(state);
@@ -288,11 +337,11 @@ int Emulate8080(State* state) {
         break;
     case 0x3c:
         single_inr_register(state, &state->a);
-        state->pc += 1; 
+        state->pc += 1;
         break;
     case 0x3d:
         single_dcr_register(state, &state->a);
-        state->pc += 1; 
+        state->pc += 1;
         break;
     case 0x3e:
         UnimplementedInstruction(state);

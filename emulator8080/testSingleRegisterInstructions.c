@@ -397,6 +397,61 @@ void test_DCR() {
     run_test_func(test_DCR_A, "DCR A");
  }
 
+bool test_CMA() {
+    
+    State test_state = create_test_state(sizeof(uint8_t) * 2);
+    test_state.memory[0] = 0x2f; //CMA
+
+    test_state.a = 0x51;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0xAE, "Contents of register A were not complemented");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_DAA() {
+    
+    State test_state = create_test_state(sizeof(uint8_t) * 3);
+    test_state.memory[0] = 0x27; //DAA: test adjustment because lower order bits > 9
+    test_state.memory[1] = 0x27; //DAA: test adjustment because aux carry bit is set to 1
+
+    test_state.a = 0x9B;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0x01, "Contents of register A were not decimal adjusted to 0x01");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 1, "Aux carry bit was not set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    result = result & assert_equals(test_state.cc.cy, 1, "Carry bit was not set");
+    
+    Emulate8080(&test_state);
+    result = result & assert_equals(test_state.a, 0x67, "Contents of register A were not decimal adjusted to 0x67");
+    result = result & assert_equals(test_state.pc, 0x02, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit not set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+
+
+    cleanup_test_state(test_state);
+    return result;
+}
+
 /*
 1. Handle overflows during increment. Will the byte = 0x00?
 2. When 0x00 is decremented should it become 0xFF and sign bit be set to 1?
@@ -406,5 +461,7 @@ void test_DCR() {
 int main(int argc, char** argv){
     test_INR();
     test_DCR();
+    run_test_func(test_CMA, "CMA");
+    run_test_func(test_DAA, "DAA");
     return 0;
 }
