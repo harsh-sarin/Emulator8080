@@ -29,6 +29,7 @@ State create_test_state(uint8_t mem_size) {
 
 void cleanup_test_state(State test_state) {
     free(test_state.memory);
+    test_state.memory = NULL;
 }
 
 bool assert_equals(uint8_t e1, uint8_t e2, char error_message[]) {
