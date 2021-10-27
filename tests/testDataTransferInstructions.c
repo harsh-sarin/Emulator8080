@@ -97,8 +97,35 @@ bool test_moves_to_register_from_memory_location() {
     return result;
 }
 
+
+bool test_moves_to_memory_location_from_register() {
+    State test_state = create_test_state(sizeof(uint8_t) * 3);
+    test_state.memory[0] = 0x72; // MOV M,D
+    test_state.h = 0x00;
+    test_state.l = 0x02;
+    test_state.d = 0xDF;
+    test_state.memory[0x02] = 0x11; // initialize with some random data
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.memory[0x02], 0xDF, "Contents of register D was not copied to memory at 0x02");
+    result = result & assert_equals(test_state.d, 0xDF, "Contents of register D were modified");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    
+    cleanup_test_state(test_state);
+    return result;
+}
+
+
 int main(int argc, char** argv){
     run_test_func(test_moves_to_register_pair, "Test data transfer between register pair");
-    run_test_func(test_moves_to_register_from_memory_location, "Test data transfer between from memory to a register");
+    run_test_func(test_moves_to_register_from_memory_location, "Test data transfer from memory to a register");
+    run_test_func(test_moves_to_memory_location_from_register, "Test data transfer from a register to memory");
     return 0;
 }

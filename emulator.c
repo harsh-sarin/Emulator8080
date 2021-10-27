@@ -520,77 +520,125 @@ int Emulate8080(State *state)
         state->h = state->a;
         state->pc += 1;
         break;
-    case 0x68:
-        UnimplementedInstruction(state);
+    case 0x68: // MOV L,B
+        state->l = state->b;
+        state->pc += 1;
         break;
-    case 0x69:
-        UnimplementedInstruction(state);
+    case 0x69: // MOV L,C
+        state->l = state->c;
+        state->pc += 1;
         break;
-    case 0x6a:
-        UnimplementedInstruction(state);
+    case 0x6a: // MOV L,D
+        state->l = state->d;
+        state->pc += 1;
         break;
-    case 0x6b:
-        UnimplementedInstruction(state);
+    case 0x6b: // MOV L,E
+        state->l = state->e;
+        state->pc += 1;
         break;
-    case 0x6c:
-        UnimplementedInstruction(state);
+    case 0x6c: // MOV L,H
+        state->l = state->h;
+        state->pc += 1;
         break;
-    case 0x6d:
-        UnimplementedInstruction(state);
+    case 0x6d: // MOV L,L
+        state->pc += 1;
         break;
-    case 0x6e:
-        UnimplementedInstruction(state);
+    case 0x6e: // MOV L,M
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            state->l = state->memory[memory_location];
+            state->pc += 1;
+        }
         break;
-    case 0x6f:
-        UnimplementedInstruction(state);
+    case 0x6f: // MOV L,A
+        state->l = state->a;
+        state->pc += 1;
         break;
-    case 0x70:
-        UnimplementedInstruction(state);
+    case 0x70: // MOV M,B
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            state->memory[memory_location] = state->b;
+            state->pc += 1;
+        }
         break;
-    case 0x71:
-        UnimplementedInstruction(state);
+    case 0x71: // MOV M,C
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            state->memory[memory_location] = state->c;
+            state->pc += 1;
+        }
         break;
-    case 0x72:
-        UnimplementedInstruction(state);
+    case 0x72: // MOV M,D
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            state->memory[memory_location] = state->d;
+            state->pc += 1;
+        }
         break;
-    case 0x73:
-        UnimplementedInstruction(state);
+    case 0x73: // MOV M,E
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            state->memory[memory_location] = state->e;
+            state->pc += 1;
+        }
         break;
-    case 0x74:
-        UnimplementedInstruction(state);
+    case 0x74: // MOV M,H
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            state->memory[memory_location] = state->h;
+            state->pc += 1;
+        }
         break;
-    case 0x75:
-        UnimplementedInstruction(state);
+    case 0x75: // MOV M,L
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            state->memory[memory_location] = state->l;
+            state->pc += 1;
+        }
         break;
     case 0x76:
         UnimplementedInstruction(state);
         break;
-    case 0x77:
-        UnimplementedInstruction(state);
+    case 0x77: // MOV M,A
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            state->memory[memory_location] = state->a;
+            state->pc += 1;
+        }
         break;
-    case 0x78:
-        UnimplementedInstruction(state);
+    case 0x78: // MOV A,B
+        state->a = state->b;
+        state->pc += 1;
         break;
-    case 0x79:
-        UnimplementedInstruction(state);
+    case 0x79: // MOV A,C
+        state->a = state->c;
+        state->pc += 1;
         break;
-    case 0x7a:
-        UnimplementedInstruction(state);
+    case 0x7a: // MOV A,D
+        state->a = state->d;
+        state->pc += 1;
         break;
-    case 0x7b:
-        UnimplementedInstruction(state);
+    case 0x7b: // MOV A,E
+        state->a = state->e;
+        state->pc += 1;
         break;
-    case 0x7c:
-        UnimplementedInstruction(state);
+    case 0x7c: // MOV A,H
+        state->a = state->h;
+        state->pc += 1;
         break;
-    case 0x7d:
-        UnimplementedInstruction(state);
+    case 0x7d: // MOV A,L
+        state->a = state->l;
+        state->pc += 1;
         break;
-    case 0x7e:
-        UnimplementedInstruction(state);
+    case 0x7e: // MOV A,M
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            state->a = state->memory[memory_location];
+            state->pc += 1;
+        }
         break;
-    case 0x7f:
-        UnimplementedInstruction(state);
+    case 0x7f: // MOV A,A
+        state->pc += 1;
         break;
     case 0x80:
         UnimplementedInstruction(state);
