@@ -106,11 +106,13 @@ int Emulate8080(State *state)
         state->b = opcode[2];
         state->pc += 3;
         break;
-    case 0x02:
-        // uint16_t offset = (state->b << 8) | (state->c);
-        // state->memory[offset] = state->a;
-        // state->pc += 1;
-        // break;
+    case 0x02: // STAX B
+        {
+            uint16_t offset = (state->b << 8) | (state->c);
+            state->memory[offset] = state->a;
+            state->pc += 1;
+        }
+        break;
     case 0x03:
         UnimplementedInstruction(state);
         break;
@@ -166,8 +168,12 @@ int Emulate8080(State *state)
     case 0x11:
         UnimplementedInstruction(state);
         break;
-    case 0x12:
-        UnimplementedInstruction(state);
+    case 0x12: // STAX D
+        {
+            uint16_t offset = (state->d << 8) | (state->e);
+            state->memory[offset] = state->a;
+            state->pc += 1;
+        }
         break;
     case 0x13:
         UnimplementedInstruction(state);

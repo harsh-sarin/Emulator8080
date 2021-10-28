@@ -123,9 +123,41 @@ bool test_moves_to_memory_location_from_register() {
 }
 
 
+bool test_STAX_B_AND_D() {
+    State test_state = create_test_state(sizeof(uint8_t) * 10);
+    test_state.a = 0x4F;
+    test_state.b = 0x00;
+    test_state.c = 0x09;
+    test_state.d = 0x00;
+    test_state.e = 0x08;
+    test_state.memory[0x0008] = 0x00;
+    test_state.memory[0x0009] = 0x00;
+    test_state.memory[0x0000] = 0x02; // STAX B
+    test_state.memory[0x0001] = 0x12; // STAX D
+
+    Emulate8080(&test_state);
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.memory[0x0008], 0x4F, "Contents of accumulator were not copied to memory at 0x0008");
+    result = result & assert_equals(test_state.memory[0x0009], 0x4F, "Contents of accumulator were not copied to memory at 0x0009");
+    result = result & assert_equals(test_state.a, 0x4F, "Contents of accumulator were modified");
+    result = result & assert_equals(test_state.pc, 0x02, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+
+    cleanup_test_state(test_state);
+    return result;
+}
+
+
 int main(int argc, char** argv){
     run_test_func(test_moves_to_register_pair, "Test data transfer between register pair");
     run_test_func(test_moves_to_register_from_memory_location, "Test data transfer from memory to a register");
     run_test_func(test_moves_to_memory_location_from_register, "Test data transfer from a register to memory");
+    run_test_func(test_STAX_B_AND_D, "Test STAX B and STAX D");
     return 0;
 }
