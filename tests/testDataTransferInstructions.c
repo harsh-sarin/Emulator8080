@@ -153,11 +153,44 @@ bool test_STAX_B_AND_D() {
     return result;
 }
 
+bool test_LDAX_B_AND_D() {
+    State test_state = create_test_state(sizeof(uint8_t) * 10);
+    test_state.a = 0x00;
+    test_state.b = 0x00;
+    test_state.c = 0x08;
+    test_state.d = 0x00;
+    test_state.e = 0x09;
+    test_state.memory[0x0008] = 0xDE;
+    test_state.memory[0x0009] = 0x13;
+    test_state.memory[0x0000] = 0x0a; // LDAX B
+    test_state.memory[0x0001] = 0x1a; // LDAX D
+
+    Emulate8080(&test_state);
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0xDE, "Content from location 0x0008 was not copied to accumulator");
+
+    Emulate8080(&test_state);
+
+    result = result & assert_equals(test_state.a, 0x13, "Contents from location 0x0009 was not copied to accumulator");
+    result = result & assert_equals(test_state.memory[0x0008], 0xDE, "Contents of memory location 0x0008 were modified");
+    result = result & assert_equals(test_state.memory[0x0009], 0x13, "Contents of memory location 0x0009 were modified");
+    result = result & assert_equals(test_state.pc, 0x02, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+
+    cleanup_test_state(test_state);
+    return result;
+}
+
 
 int main(int argc, char** argv){
     run_test_func(test_moves_to_register_pair, "Test data transfer between register pair");
     run_test_func(test_moves_to_register_from_memory_location, "Test data transfer from memory to a register");
     run_test_func(test_moves_to_memory_location_from_register, "Test data transfer from a register to memory");
     run_test_func(test_STAX_B_AND_D, "Test STAX B and STAX D");
+    run_test_func(test_LDAX_B_AND_D, "Test LDAX B and STAX D");
     return 0;
 }

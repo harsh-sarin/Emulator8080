@@ -141,8 +141,12 @@ int Emulate8080(State *state)
     case 0x09:
         UnimplementedInstruction(state);
         break;
-    case 0x0a:
-        UnimplementedInstruction(state);
+    case 0x0a: // LDAX B
+        {
+            uint16_t offset = (state->b << 8) | (state->c);
+            state->a = state->memory[offset];
+            state->pc += 1;
+        }
         break;
     case 0x0b:
         UnimplementedInstruction(state);
@@ -198,8 +202,12 @@ int Emulate8080(State *state)
     case 0x19:
         UnimplementedInstruction(state);
         break;
-    case 0x1a:
-        UnimplementedInstruction(state);
+    case 0x1a:// LDAX D
+        {
+            uint16_t offset = (state->d << 8) | (state->e);
+            state->a = state->memory[offset];
+            state->pc += 1;
+        }
         break;
     case 0x1b:
         UnimplementedInstruction(state);
