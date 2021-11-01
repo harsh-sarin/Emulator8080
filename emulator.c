@@ -335,8 +335,9 @@ int Emulate8080(State *state)
     case 0x36:
         UnimplementedInstruction(state);
         break;
-    case 0x37:
-        UnimplementedInstruction(state);
+    case 0x37: // STC
+        state->cc.cy = 1;
+        state->pc += 1;
         break;
     case 0x38:
         UnimplementedInstruction(state);
@@ -361,8 +362,9 @@ int Emulate8080(State *state)
     case 0x3e:
         UnimplementedInstruction(state);
         break;
-    case 0x3f:
-        UnimplementedInstruction(state);
+    case 0x3f: // CMC
+        state->cc.cy = ~state->cc.cy;
+        state->pc += 1;
         break;
     case 0x40: // MOV B,B
         state->pc += 1;
