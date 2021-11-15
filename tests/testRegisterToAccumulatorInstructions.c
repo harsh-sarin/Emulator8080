@@ -116,11 +116,56 @@ bool test_ADD_M() {
     return result;
 }
 
+bool test_ADC_D() {
+    State test_state = create_test_state(sizeof(uint8_t) * 2);
+    test_state.memory[0] = 0x8a; // ADC D
+    test_state.a = 0x3D;
+    test_state.d = 0x42;
+    test_state.cc.cy = 0;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0x7f, "ADC operation did not yield expected results");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_ADC_E() {
+    State test_state = create_test_state(sizeof(uint8_t) * 2);
+    test_state.memory[0] = 0x8b; // ADC E
+    test_state.a = 0x3D;
+    test_state.e = 0x42;
+    test_state.cc.cy = 1;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0x80, "ADC operation did not yield expected results");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 1, "Aux carry bit was not set");
+    result = result & assert_equals(test_state.cc.s, 1, "Sign bit was not set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    
+    cleanup_test_state(test_state);
+    return result;
+}
 
 
 int main(int argc, char** argv){
     run_test_func(test_ADD_B, "Test ADD B");
     run_test_func(test_ADD_C, "Test ADD C");
     run_test_func(test_ADD_M, "Test ADD M");
+    run_test_func(test_ADC_D, "Test ADC D");
+    run_test_func(test_ADC_E, "Test ADC E");
     return 0;
 }

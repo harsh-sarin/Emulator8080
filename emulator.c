@@ -87,25 +87,35 @@ void single_dcr_memory(State *some_state)
     some_state->cc.ac = 0; // Assumption: no aux carry in decrement operation
 }
 
-void add_value_to_accumulator(State *some_state, uint8_t value) {
-    uint16_t sum = (uint16_t) some_state->a + (uint16_t) value;
+void update_condition_codes_due_to_add(State *some_state, uint16_t sum, uint8_t addend) {
     some_state->cc.cy = (sum > 0xFF);
     some_state->cc.z = ((sum & 0xFF) == 0);
     some_state->cc.s = ((sum & 0x80) == 0x80);
     some_state->cc.p = is_even_parity((sum & 0xFF));
     bool is_acc_bit_pos_3_set = ((some_state->a & 0x08) == 0x08);
-    bool is_value_bit_pos_3_set = ((value & 0x08) == 0x08);
+    bool is_addend_bit_pos_3_set = ((addend & 0x08) == 0x08);
     // If both the operands have the 3rd bit set, there is bound to be a carry out of that position when
     // these bits are added.
     // If at least one operand has the 3rd bit set, and the result of adding these bits yields 0, it implies that 
     // a carry from adding lower order bits propagated to bit 3, resuling in carry out of bit 3 as well.
     // 
-    if ((is_acc_bit_pos_3_set && is_value_bit_pos_3_set) || 
-        ((is_acc_bit_pos_3_set || is_value_bit_pos_3_set) && (sum & 0x08) == 0)){
+    if ((is_acc_bit_pos_3_set && is_addend_bit_pos_3_set) || 
+        ((is_acc_bit_pos_3_set || is_addend_bit_pos_3_set) && (sum & 0x08) == 0)){
         some_state->cc.ac = 1;
     } else {
         some_state->cc.ac = 0;
     }
+}
+
+void add_value_to_accumulator(State *some_state, uint8_t addend) {
+    uint16_t sum = (uint16_t) some_state->a + (uint16_t) addend;
+    update_condition_codes_due_to_add(some_state, sum, addend);
+    some_state->a = sum & 0xFF;
+}
+
+void add_value_and_carry_to_accumulator(State *some_state, uint8_t addend) {
+    uint16_t sum = (uint16_t) some_state->a + (uint16_t) addend + (some_state->cc.cy == 1 ? 0x0001 : 0x0000);
+    update_condition_codes_due_to_add(some_state, sum, addend);
     some_state->a = sum & 0xFF;
 }
 
@@ -713,29 +723,40 @@ void Emulate8080(State *state)
         add_value_to_accumulator(state, state->a);
         state->pc +=1;
         break;
-    case 0x88:
-        UnimplementedInstruction(state);
+    case 0x88: // ADC B
+        add_value_and_carry_to_accumulator(state, state->b);
+        state->pc +=1;
         break;
-    case 0x89:
-        UnimplementedInstruction(state);
+    case 0x89: // ADC C
+        add_value_and_carry_to_accumulator(state, state->c);
+        state->pc +=1;
         break;
-    case 0x8a:
-        UnimplementedInstruction(state);
+    case 0x8a: // ADC D
+        add_value_and_carry_to_accumulator(state, state->d);
+        state->pc +=1;
         break;
-    case 0x8b:
-        UnimplementedInstruction(state);
+    case 0x8b: // ADC E
+        add_value_and_carry_to_accumulator(state, state->e);
+        state->pc +=1;
         break;
-    case 0x8c:
-        UnimplementedInstruction(state);
+    case 0x8c: // ADC H
+        add_value_and_carry_to_accumulator(state, state->h);
+        state->pc +=1;
         break;
-    case 0x8d:
-        UnimplementedInstruction(state);
+    case 0x8d: // ADC L
+        add_value_and_carry_to_accumulator(state, state->l);
+        state->pc +=1;
         break;
-    case 0x8e:
-        UnimplementedInstruction(state);
+    case 0x8e: // ADD M
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            add_value_and_carry_to_accumulator(state, state->memory[memory_location]);
+            state->pc +=1;
+        }
         break;
-    case 0x8f:
-        UnimplementedInstruction(state);
+    case 0x8f: // ADC A
+        add_value_and_carry_to_accumulator(state, state->a);
+        state->pc +=1;
         break;
     case 0x90:
         UnimplementedInstruction(state);
