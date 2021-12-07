@@ -119,6 +119,36 @@ void add_value_and_carry_to_accumulator(State *some_state, uint8_t addend) {
     some_state->a = sum & 0xFF;
 }
 
+void update_condition_codes_due_to_subtract(State *some_state, uint16_t difference, uint8_t subtrahend) {
+    some_state->cc.cy = !(difference > 0xFF);
+    some_state->cc.z = ((difference & 0xFF) == 0);
+    some_state->cc.s = ((difference & 0x80) == 0x80);
+    some_state->cc.p = is_even_parity((difference & 0xFF));
+    bool is_acc_bit_pos_3_set = ((some_state->a & 0x08) == 0x08);
+    bool is_subtrahend_bit_pos_3_set = ((subtrahend & 0x08) == 0x08);
+    if ((is_acc_bit_pos_3_set && is_subtrahend_bit_pos_3_set) || 
+        ((is_acc_bit_pos_3_set || is_subtrahend_bit_pos_3_set) && (difference & 0x08) == 0)){
+        some_state->cc.ac = 1;
+    } else {
+        some_state->cc.ac = 0;
+    }
+}
+
+void subtract_value_from_accumulator(State *some_state, uint8_t subtrahend) {
+    uint8_t subtrahend_two_complement = (~subtrahend) + 0x01;
+    uint16_t difference = (uint16_t) some_state->a + (uint16_t) subtrahend_two_complement;
+    update_condition_codes_due_to_subtract(some_state, difference, subtrahend_two_complement);
+    some_state->a = difference & 0xFF;
+}
+
+void subtract_value_and_borrow_from_accumulator(State *some_state, uint8_t subtrahend) {
+    uint8_t subtrahend_with_borrow_added = (subtrahend + (some_state->cc.cy == 1 ? 0x01 : 0x00)) & 0xFF;
+    uint8_t subtrahend_two_complement = (~subtrahend_with_borrow_added) + 0x01;
+    uint16_t difference = (uint16_t) some_state->a + (uint16_t) subtrahend_two_complement;
+    update_condition_codes_due_to_subtract(some_state, difference, subtrahend_two_complement);
+    some_state->a = difference & 0xFF;
+}
+
 
 void UnimplementedInstruction(State *state)
 {
@@ -747,7 +777,7 @@ void Emulate8080(State *state)
         add_value_and_carry_to_accumulator(state, state->l);
         state->pc +=1;
         break;
-    case 0x8e: // ADD M
+    case 0x8e: // ADC M
         {
             uint16_t memory_location = (state->h << 8) | (state->l);
             add_value_and_carry_to_accumulator(state, state->memory[memory_location]);
@@ -758,53 +788,75 @@ void Emulate8080(State *state)
         add_value_and_carry_to_accumulator(state, state->a);
         state->pc +=1;
         break;
-    case 0x90:
-        UnimplementedInstruction(state);
+    case 0x90: // SUB B
+        subtract_value_from_accumulator(state, state->b);
+        state->pc +=1;
         break;
-    case 0x91:
-        UnimplementedInstruction(state);
+    case 0x91: // SUB C
+        subtract_value_from_accumulator(state, state->c);
+        state->pc +=1;
         break;
-    case 0x92:
-        UnimplementedInstruction(state);
+    case 0x92: // SUB D
+        subtract_value_from_accumulator(state, state->d);
+        state->pc +=1;
         break;
-    case 0x93:
-        UnimplementedInstruction(state);
+    case 0x93: // SUB E
+        subtract_value_from_accumulator(state, state->e);
+        state->pc +=1;
         break;
-    case 0x94:
-        UnimplementedInstruction(state);
+    case 0x94: // SUB H
+        subtract_value_from_accumulator(state, state->h);
+        state->pc +=1;
         break;
-    case 0x95:
-        UnimplementedInstruction(state);
+    case 0x95: // SUB L
+        subtract_value_from_accumulator(state, state->l);
+        state->pc +=1;
         break;
-    case 0x96:
-        UnimplementedInstruction(state);
+    case 0x96: // SUB M
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            subtract_value_from_accumulator(state, state->memory[memory_location]);
+            state->pc +=1;
+        }
         break;
-    case 0x97:
-        UnimplementedInstruction(state);
+    case 0x97: // SUB A
+        subtract_value_from_accumulator(state, state->a);
+        state->pc +=1;
         break;
-    case 0x98:
-        UnimplementedInstruction(state);
+    case 0x98: // SBB B
+        subtract_value_and_borrow_from_accumulator(state, state->b);
+        state->pc += 1;
         break;
-    case 0x99:
-        UnimplementedInstruction(state);
+    case 0x99: // SBB C
+        subtract_value_and_borrow_from_accumulator(state, state->c);
+        state->pc += 1;
         break;
-    case 0x9a:
-        UnimplementedInstruction(state);
+    case 0x9a: // SBB D
+        subtract_value_and_borrow_from_accumulator(state, state->d);
+        state->pc += 1;
         break;
-    case 0x9b:
-        UnimplementedInstruction(state);
+    case 0x9b: // SBB E
+        subtract_value_and_borrow_from_accumulator(state, state->e);
+        state->pc += 1;
         break;
-    case 0x9c:
-        UnimplementedInstruction(state);
+    case 0x9c: // SBB H
+        subtract_value_and_borrow_from_accumulator(state, state->h);
+        state->pc += 1;
         break;
-    case 0x9d:
-        UnimplementedInstruction(state);
+    case 0x9d: // SBB L
+        subtract_value_and_borrow_from_accumulator(state, state->l);
+        state->pc += 1;
         break;
-    case 0x9e:
-        UnimplementedInstruction(state);
+    case 0x9e: // SBB M
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            subtract_value_and_borrow_from_accumulator(state, state->memory[memory_location]);
+            state->pc +=1;
+        }
         break;
-    case 0x9f:
-        UnimplementedInstruction(state);
+    case 0x9f: // SBB A
+        subtract_value_and_borrow_from_accumulator(state, state->a);
+        state->pc += 1;
         break;
     case 0xa0:
         UnimplementedInstruction(state);
