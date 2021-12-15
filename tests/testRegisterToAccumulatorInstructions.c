@@ -268,6 +268,198 @@ bool test_SBB_M() {
     return result;
 }
 
+bool test_ANA_B() {
+    State test_state = create_test_state(sizeof(uint8_t)*2);
+    test_state.memory[0] = 0xa0;
+    test_state.a = 0xfc;
+    test_state.b = 0x0f;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0x0c, "ANA operation did not yield expected results");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 1, "Parity bit was not set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_ANA_L() {
+    State test_state = create_test_state(sizeof(uint8_t)*2);
+    test_state.memory[0] = 0xa5;
+    test_state.a = 0xff;
+    test_state.l = 0x00;
+    test_state.cc.cy = 1;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0x00, "ANA operation did not yield expected results");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 1, "Parity bit was not set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 1, "Zero bit was not set");
+    
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_XRA_with_self() {
+    State test_state = create_test_state(sizeof(uint8_t)*2);
+    test_state.memory[0] = 0xaf; // XRA A
+    test_state.a = 0xc3;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0x00, "XRA operation did not yield expected results");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 1, "Parity bit was not set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 1, "Zero bit was not set");
+    
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_XRA_one_complement() {
+    State test_state = create_test_state(sizeof(uint8_t)*2);
+    test_state.memory[0] = 0xaa; // XRA D
+    test_state.a = 0x0F;
+    test_state.d = 0xFF;
+    test_state.cc.cy = 1;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0xF0, "XRA operation did not yield expected results");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 1, "Parity bit was not set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 1, "Sign bit was not set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_XRA_condition_bit_test() {
+    State test_state = create_test_state(sizeof(uint8_t)*10);
+    test_state.memory[0] = 0xAE; // XRA M
+    test_state.memory[8] = 0x78;
+    test_state.a = 0x5C;
+    test_state.h = 0x00;
+    test_state.l = 0x08;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0x24, "XRA operation did not yield expected results");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 1, "Parity bit was not set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_ORA_C() {
+    State test_state = create_test_state(sizeof(uint8_t)*2);
+    test_state.memory[0] = 0xB1;
+    test_state.a = 0x33;
+    test_state.c = 0x0F;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0x3F, "ORA operation did not yield expected results");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 1, "Parity bit was not set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_CMP_less_than_accumulator() {
+    State test_state = create_test_state(sizeof(uint8_t)*2);
+    test_state.memory[0] = 0xBA; // CMP D
+    test_state.a = 0x0A;
+    test_state.d = 0x05;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0x0A, "CMP operation changed accumulator");
+    result = result & assert_equals(test_state.d, 0x05, "CMP operation changed register");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.z, 0, "Register and accumulator values are marked equal");
+    result = result & assert_equals(test_state.cc.cy, 0, "Register value is marked greater than accumulator value");
+    result = result & assert_equals(test_state.cc.p, 1, "Parity bit was not set");
+    result = result & assert_equals(test_state.cc.ac, 1, "Aux carry bit was not set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_CMP_more_than_accumulator() {
+    State test_state = create_test_state(sizeof(uint8_t)*2);
+    test_state.memory[0] = 0xBC; // CMP H
+    test_state.a = 0x02;
+    test_state.h = 0x07;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0x02, "CMP operation changed accumulator");
+    result = result & assert_equals(test_state.h, 0x07, "CMP operation changed register");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.z, 0, "Register and accumulator values are marked equal");
+    result = result & assert_equals(test_state.cc.cy, 1, "Register value is marked less than accumulator value");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 1, "Sign bit was not set");
+
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_CMP_equal_to_accumulator() {
+    State test_state = create_test_state(sizeof(uint8_t)*2);
+    test_state.memory[0] = 0xBF; // CMP A
+    test_state.a = 0x05;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0x05, "CMP operation changed accumulator");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.z, 1, "Accumulator compared with self is not marked equal");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 1, "Parity bit was not set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+
+    cleanup_test_state(test_state);
+    return result;
+}
 
 int main(int argc, char** argv){
     run_test_func(test_ADD_B, "Test ADD B");
@@ -280,5 +472,14 @@ int main(int argc, char** argv){
     run_test_func(test_SUB_A, "Test SUB A");
     run_test_func(test_SBB_H, "Test SBB H");
     run_test_func(test_SBB_M, "Test SBB M");
+    run_test_func(test_ANA_B, "Test ANA B");
+    run_test_func(test_ANA_L, "Test ANA L");
+    run_test_func(test_XRA_with_self, "Test XRA with self");
+    run_test_func(test_XRA_one_complement, "Test XRA does one complement");
+    run_test_func(test_XRA_condition_bit_test, "Test XRA used for testing condition bits");
+    run_test_func(test_ORA_C, "Test ORA C");
+    run_test_func(test_CMP_less_than_accumulator, "Test CMP register < acc");
+    run_test_func(test_CMP_more_than_accumulator, "Test CMP register > acc");
+    run_test_func(test_CMP_equal_to_accumulator, "Test CMP acc == acc");
     return 0;
 }

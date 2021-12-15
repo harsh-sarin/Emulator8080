@@ -149,6 +149,36 @@ void subtract_value_and_borrow_from_accumulator(State *some_state, uint8_t subtr
     some_state->a = difference & 0xFF;
 }
 
+void ana(State* some_state, uint8_t value_to_and) {
+    some_state->a &= value_to_and;
+    some_state->cc.cy = 0;
+    some_state->cc.z = ((some_state->a & 0xFF) == 0);
+    some_state->cc.s = ((some_state->a & 0x80) == 0x80);
+    some_state->cc.p = is_even_parity(some_state->a);
+}
+
+void xra(State* some_state, uint8_t value_to_xor) {
+    some_state->a ^= value_to_xor;
+    some_state->cc.cy = 0;
+    some_state->cc.z = ((some_state->a & 0xFF) == 0);
+    some_state->cc.s = ((some_state->a & 0x80) == 0x80);
+    some_state->cc.p = is_even_parity(some_state->a);
+}
+
+void ora(State* some_state, uint8_t value_to_and) {
+    some_state->a |= value_to_and;
+    some_state->cc.cy = 0;
+    some_state->cc.z = ((some_state->a & 0xFF) == 0);
+    some_state->cc.s = ((some_state->a & 0x80) == 0x80);
+    some_state->cc.p = is_even_parity(some_state->a);
+}
+
+void cmp(State* some_state, uint8_t value_to_compare) {
+    uint8_t subtrahend_two_complement = (~value_to_compare) + 0x01;
+    uint16_t difference = (uint16_t) some_state->a + (uint16_t) subtrahend_two_complement;
+    update_condition_codes_due_to_subtract(some_state, difference, value_to_compare);
+}
+
 
 void UnimplementedInstruction(State *state)
 {
@@ -858,101 +888,145 @@ void Emulate8080(State *state)
         subtract_value_and_borrow_from_accumulator(state, state->a);
         state->pc += 1;
         break;
-    case 0xa0:
-        UnimplementedInstruction(state);
+    case 0xa0: // ANA B
+        ana(state, state->b);
+        state->pc += 1;
         break;
-    case 0xa1:
-        UnimplementedInstruction(state);
+    case 0xa1: // ANA C
+        ana(state, state->c);
+        state->pc += 1;
         break;
-    case 0xa2:
-        UnimplementedInstruction(state);
+    case 0xa2: // ANA D
+        ana(state, state->d);
+        state->pc += 1;
         break;
-    case 0xa3:
-        UnimplementedInstruction(state);
+    case 0xa3: // ANA E
+        ana(state, state->e);
+        state->pc += 1;
         break;
-    case 0xa4:
-        UnimplementedInstruction(state);
+    case 0xa4: // ANA H
+        ana(state, state->h);
+        state->pc += 1;
         break;
-    case 0xa5:
-        UnimplementedInstruction(state);
+    case 0xa5: // ANA L
+        ana(state, state->b);
+        state->pc += 1;
         break;
     case 0xa6:
-        UnimplementedInstruction(state);
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            ana(state, state->memory[memory_location]);
+            state->pc +=1;
+        }
         break;
-    case 0xa7:
-        UnimplementedInstruction(state);
+    case 0xa7: // ANA A
+        ana(state, state->a);
+        state->pc += 1;
         break;
-    case 0xa8:
-        UnimplementedInstruction(state);
+    case 0xa8: // XRA B
+        xra(state, state->b);
+        state->pc += 1;
         break;
-    case 0xa9:
-        UnimplementedInstruction(state);
+    case 0xa9: // XRA C
+        xra(state, state->c);
+        state->pc += 1;
         break;
-    case 0xaa:
-        UnimplementedInstruction(state);
+    case 0xaa: // XRA D
+        xra(state, state->d);
+        state->pc += 1;
         break;
-    case 0xab:
-        UnimplementedInstruction(state);
+    case 0xab: // XRA E
+        xra(state, state->e);
+        state->pc += 1;
         break;
-    case 0xac:
-        UnimplementedInstruction(state);
+    case 0xac: // XRA H
+        xra(state, state->h);
+        state->pc += 1;
         break;
-    case 0xad:
-        UnimplementedInstruction(state);
+    case 0xad: // XRA L
+        xra(state, state->l);
+        state->pc += 1;
         break;
-    case 0xae:
-        UnimplementedInstruction(state);
+    case 0xae: // XRA M
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            xra(state, state->memory[memory_location]);
+            state->pc +=1;
+        }
         break;
-    case 0xaf:
-        UnimplementedInstruction(state);
+    case 0xaf: // XRA A
+        xra(state, state->a);
+        state->pc += 1;
         break;
-    case 0xb0:
-        UnimplementedInstruction(state);
+    case 0xb0: // ORA B
+        ora(state, state->b);
+        state->pc +=1;
         break;
-    case 0xb1:
-        UnimplementedInstruction(state);
+    case 0xb1: // ORA C
+        ora(state, state->c);
+        state->pc +=1;
         break;
-    case 0xb2:
-        UnimplementedInstruction(state);
+    case 0xb2: // ORA D
+        ora(state, state->d);
+        state->pc +=1;
         break;
-    case 0xb3:
-        UnimplementedInstruction(state);
+    case 0xb3: // ORA E
+        ora(state, state->e);
+        state->pc +=1;
         break;
-    case 0xb4:
-        UnimplementedInstruction(state);
+    case 0xb4: // ORA H
+        ora(state, state->h);
+        state->pc +=1;
         break;
-    case 0xb5:
-        UnimplementedInstruction(state);
+    case 0xb5: // ORA L
+        ora(state, state->l);
+        state->pc +=1;
         break;
-    case 0xb6:
-        UnimplementedInstruction(state);
+    case 0xb6: // ORA M
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            ora(state, state->memory[memory_location]);
+            state->pc +=1;
+        }
         break;
-    case 0xb7:
-        UnimplementedInstruction(state);
+    case 0xb7: // ORA A
+        ora(state, state->a);
+        state->pc +=1;
         break;
-    case 0xb8:
-        UnimplementedInstruction(state);
+    case 0xb8: // CMP B
+        cmp(state, state->b);
+        state->pc += 1;
         break;
-    case 0xb9:
-        UnimplementedInstruction(state);
+    case 0xb9: // CMP C
+        cmp(state, state->c);
+        state->pc += 1;
         break;
-    case 0xba:
-        UnimplementedInstruction(state);
+    case 0xba: // CMP D
+        cmp(state, state->d);
+        state->pc += 1;
         break;
-    case 0xbb:
-        UnimplementedInstruction(state);
+    case 0xbb: // CMP E
+        cmp(state, state->e);
+        state->pc += 1;
         break;
-    case 0xbc:
-        UnimplementedInstruction(state);
+    case 0xbc: // CMP H
+        cmp(state, state->h);
+        state->pc += 1;
         break;
-    case 0xbd:
-        UnimplementedInstruction(state);
+    case 0xbd: // CMP L
+        cmp(state, state->l);
+        state->pc += 1;
         break;
-    case 0xbe:
-        UnimplementedInstruction(state);
+    case 0xbe: // CMP M
+        {
+            uint16_t memory_location = (state->h << 8) | (state->l);
+            cmp(state, state->memory[memory_location]);
+            state->pc +=1;
+        }
         break;
-    case 0xbf:
-        UnimplementedInstruction(state);
+    case 0xbf: // CMP A
+        cmp(state, state->a);
+        state->pc += 1;
         break;
     case 0xc0:
         UnimplementedInstruction(state);
