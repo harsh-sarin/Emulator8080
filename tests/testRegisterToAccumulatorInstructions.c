@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "../emulator.h"
+#include "emulator.h"
 
 void red() {
     printf("\033[1;31m");

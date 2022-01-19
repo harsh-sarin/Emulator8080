@@ -1,4 +1,7 @@
-#include<stdint.h>
+#include <stdint.h>
+
+#ifndef _DOMAIN
+#define _DOMAIN
 
 typedef struct ConditionCodes {
     uint8_t z:1;
@@ -25,4 +28,4 @@ typedef struct State {
     uint8_t int_enable;
 } State;
 
-void Emulate8080(State* state);
+#endif
