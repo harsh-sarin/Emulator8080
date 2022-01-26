@@ -1,4 +1,4 @@
-vpath %.c src
+vpath %.c src src/instructions
 vpath %.h include
 vpath %.o out
 
@@ -36,11 +36,20 @@ test-rotate-acc: testRotateAccumulatorInstructions
 testRotateAccumulatorInstructions: emulator.o instructions.o
 				gcc -I$(includes_path) ./tests/testRotateAccumulatorInstructions.c ./out/emulator.o ./out/instructions.o -o ./out/testRotateAccumulatorInstructions
 
+test-register-pair: test-register-pair-instructions
+				./out/test-register-pair-instructions
+
+test-register-pair-instructions: emulator.o instructions.o register_pair_instructions.o
+				gcc -I$(includes_path) ./tests/test_register_pair_instructions.c ./out/emulator.o ./out/instructions.o ./out/register_pair_instructions.o -o ./out/test-register-pair-instructions
+
 emulator.o: emulator.c
 		gcc -I$(includes_path) -c ./src/emulator.c -o ./out/emulator.o
 
 instructions.o: instructions.c
 		gcc -I/$(includes_path) -c ./src/instructions.c -o ./out/instructions.o
+
+register_pair_instructions.o: register_pair_instructions.c
+		gcc -I/$(includes_path) -c ./src/instructions/register_pair_instructions.c -o ./out/register_pair_instructions.o
 
 clean:
 	rm ./out/*

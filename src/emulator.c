@@ -5,6 +5,7 @@
 #include "domain.h"
 #include "emulator.h"
 #include "instructions.h"
+#include "register_pair_instructions.h"
 
 void UnimplementedInstruction(State *state)
 {
@@ -883,8 +884,8 @@ void Emulate8080(State *state)
     case 0xc4:
         UnimplementedInstruction(state);
         break;
-    case 0xc5:
-        UnimplementedInstruction(state);
+    case 0xc5: // PUSH B
+        push_register_pair_to_stack(state, state->b, state->c);
         break;
     case 0xc6:
         UnimplementedInstruction(state);
@@ -931,8 +932,8 @@ void Emulate8080(State *state)
     case 0xd4:
         UnimplementedInstruction(state);
         break;
-    case 0xd5:
-        UnimplementedInstruction(state);
+    case 0xd5: // PUSH D
+        push_register_pair_to_stack(state, state->d, state->e);
         break;
     case 0xd6:
         UnimplementedInstruction(state);
@@ -979,8 +980,8 @@ void Emulate8080(State *state)
     case 0xe4:
         UnimplementedInstruction(state);
         break;
-    case 0xe5:
-        UnimplementedInstruction(state);
+    case 0xe5: // PUSH H
+        push_register_pair_to_stack(state, state->h, state->l);
         break;
     case 0xe6:
         UnimplementedInstruction(state);
@@ -1028,7 +1029,7 @@ void Emulate8080(State *state)
         UnimplementedInstruction(state);
         break;
     case 0xf5:
-        UnimplementedInstruction(state);
+        push_psw(state);
         break;
     case 0xf6:
         UnimplementedInstruction(state);
