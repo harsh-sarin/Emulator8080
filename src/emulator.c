@@ -32,8 +32,8 @@ void Emulate8080(State *state)
             state->pc += 1;
         }
         break;
-    case 0x03:
-        UnimplementedInstruction(state);
+    case 0x03: // INX B
+        inx(state, &state->b, &state->c);
         break;
     case 0x04: // INR B
         single_inr_register(state, &state->b);
@@ -57,8 +57,8 @@ void Emulate8080(State *state)
     case 0x08:
         UnimplementedInstruction(state);
         break;
-    case 0x09:
-        UnimplementedInstruction(state);
+    case 0x09: // DAD B
+        dad(state, state->b, state->c);
         break;
     case 0x0a: // LDAX B
         {
@@ -67,8 +67,8 @@ void Emulate8080(State *state)
             state->pc += 1;
         }
         break;
-    case 0x0b:
-        UnimplementedInstruction(state);
+    case 0x0b: // DCX B
+        dcx(state, &state->b, &state->c);
         break;
     case 0x0c:
         single_inr_register(state, &state->c);
@@ -102,10 +102,10 @@ void Emulate8080(State *state)
             state->pc += 1;
         }
         break;
-    case 0x13:
-        UnimplementedInstruction(state);
+    case 0x13: // INX D
+        inx(state, &state->d, &state->e);
         break;
-    case 0x14:
+    case 0x14: // INR D
         single_inr_register(state, &state->d);
         state->pc += 1;
         break;
@@ -127,8 +127,8 @@ void Emulate8080(State *state)
     case 0x18:
         UnimplementedInstruction(state);
         break;
-    case 0x19:
-        UnimplementedInstruction(state);
+    case 0x19: // DAD D
+        dad(state, state->d, state->e);
         break;
     case 0x1a:// LDAX D
         {
@@ -137,8 +137,8 @@ void Emulate8080(State *state)
             state->pc += 1;
         }
         break;
-    case 0x1b:
-        UnimplementedInstruction(state);
+    case 0x1b: // DCX D
+        dcx(state, &state->d, &state->e);
         break;
     case 0x1c:
         single_inr_register(state, &state->e);
@@ -168,8 +168,8 @@ void Emulate8080(State *state)
     case 0x22:
         UnimplementedInstruction(state);
         break;
-    case 0x23:
-        UnimplementedInstruction(state);
+    case 0x23: // INX H
+        inx(state, &state->h, &state->l);
         break;
     case 0x24: // INR H
         single_inr_register(state, &state->h);
@@ -221,14 +221,14 @@ void Emulate8080(State *state)
     case 0x28:
         UnimplementedInstruction(state);
         break;
-    case 0x29:
-        UnimplementedInstruction(state);
+    case 0x29: // DAD H
+        dad(state, state->h, state->l);
         break;
     case 0x2a:
         UnimplementedInstruction(state);
         break;
-    case 0x2b:
-        UnimplementedInstruction(state);
+    case 0x2b: // DCX H
+        dcx(state, &state->h, &state->l);
         break;
     case 0x2c: // INR L
         single_inr_register(state, &state->l);
@@ -254,8 +254,8 @@ void Emulate8080(State *state)
     case 0x32:
         UnimplementedInstruction(state);
         break;
-    case 0x33:
-        UnimplementedInstruction(state);
+    case 0x33: // INX SP
+        inx_sp(state);
         break;
     case 0x34: // INR M
         single_inr_memory(state);
@@ -275,14 +275,14 @@ void Emulate8080(State *state)
     case 0x38:
         UnimplementedInstruction(state);
         break;
-    case 0x39:
-        UnimplementedInstruction(state);
+    case 0x39: // DAD SP
+        dad(state, ((state->sp & 0xff00) >> 8), (state->sp & 0x00ff));
         break;
     case 0x3a:
         UnimplementedInstruction(state);
         break;
-    case 0x3b:
-        UnimplementedInstruction(state);
+    case 0x3b: // DCX SP
+        dcx_sp(state);
         break;
     case 0x3c: // INR A
         single_inr_register(state, &state->a);
@@ -872,8 +872,8 @@ void Emulate8080(State *state)
     case 0xc0:
         UnimplementedInstruction(state);
         break;
-    case 0xc1:
-        UnimplementedInstruction(state);
+    case 0xc1: // POP B
+        pop_from_stack_to_register_pair(state, &state->b, &state->c);
         break;
     case 0xc2:
         UnimplementedInstruction(state);
@@ -920,8 +920,8 @@ void Emulate8080(State *state)
     case 0xd0:
         UnimplementedInstruction(state);
         break;
-    case 0xd1:
-        UnimplementedInstruction(state);
+    case 0xd1: // POP D
+        pop_from_stack_to_register_pair(state, &state->d, &state->e);
         break;
     case 0xd2:
         UnimplementedInstruction(state);
@@ -968,8 +968,8 @@ void Emulate8080(State *state)
     case 0xe0:
         UnimplementedInstruction(state);
         break;
-    case 0xe1:
-        UnimplementedInstruction(state);
+    case 0xe1: // POP H
+        pop_from_stack_to_register_pair(state, &state->h, &state->l);
         break;
     case 0xe2:
         UnimplementedInstruction(state);
@@ -1016,8 +1016,8 @@ void Emulate8080(State *state)
     case 0xf0:
         UnimplementedInstruction(state);
         break;
-    case 0xf1:
-        UnimplementedInstruction(state);
+    case 0xf1: // POP PSW
+        pop_psw(state);
         break;
     case 0xf2:
         UnimplementedInstruction(state);

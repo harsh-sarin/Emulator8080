@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "domain.h"
 
 void push_register_pair_to_stack(State* state, uint8_t register_higher, uint8_t register_lower) {
@@ -21,5 +22,60 @@ void push_psw(State* state) {
     condition_bits |= (state->cc.cy == 1 ? 0x01 : 0x00); //SZ0Ac0P1C
     state->memory[sp-2] = condition_bits;
     state->sp -= 2;
+    state->pc += 1;
+}
+
+void pop_from_stack_to_register_pair(State *state, uint8_t *register_higher, uint8_t *register_lower) {
+    *register_lower = state->memory[state->sp];
+    *register_higher = state->memory[state->sp+1];
+    state->sp += 2;
+    state->pc += 1;
+}
+
+void pop_psw(State *state) {
+    state->a = state->memory[state->sp+1];
+    uint8_t condition_bits = state->memory[state->sp];
+    state->cc.s = (condition_bits & 0x80) == 0x80;
+    state->cc.z = (condition_bits & 0x40) == 0x40;
+    state->cc.ac = (condition_bits & 0x10) == 0x10;
+    state->cc.p = (condition_bits & 0x04) == 0x04;
+    state->cc.cy = (condition_bits & 0x01) == 0x01;
+    state->sp += 2;
+    state->pc += 1;
+}
+
+void dad(State* state, uint8_t higher_order, uint8_t lower_order) {
+    uint16_t addend1 = (((uint16_t) state->h) << 8) + ((uint16_t) state->l);
+    uint16_t addend2 = (((uint16_t) higher_order) << 8) + ((uint16_t) lower_order);
+    uint32_t sum = addend1 + addend2;
+    state->cc.cy = (sum > 0xFFFF);
+    state->h = ((sum & 0xFF00) >> 8);
+    state->l = sum & 0xFF;
+    state->pc += 1;
+}
+
+void inx(State* state, uint8_t* register_higher, uint8_t* register_lower) {
+    (*register_lower)++;
+    if (*register_lower == 0x00) {
+        (*register_higher)++;
+    }
+    state->pc += 1;
+}
+
+void inx_sp(State* state) {
+    state->sp++;
+    state->pc += 1;
+}
+
+void dcx(State* state, uint8_t* register_higher, uint8_t* register_lower) {
+    (*register_lower)--;
+    if (*register_lower == 0xFF) {
+        (*register_higher)--;
+    }
+    state->pc += 1;
+}
+
+void dcx_sp(State* state) {
+    state->sp--;
     state->pc += 1;
 }

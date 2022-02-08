@@ -43,6 +43,12 @@ State create_test_state(uint8_t mem_size) {
     test_state.memory = mem;
     test_state.pc = 0x00;
 
+    test_state.cc.p = 0;
+    test_state.cc.z = 0;
+    test_state.cc.cy = 0;
+    test_state.cc.ac = 0;
+    test_state.cc.s = 0;
+
     return test_state;
 }
 
