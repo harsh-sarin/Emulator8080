@@ -239,6 +239,85 @@ bool test_dcx_sp() {
     return result;
 }
 
+bool test_xchg() {
+    State test_state = create_test_state(sizeof(uint8_t) * 2);
+    test_state.memory[0] = 0xEB;
+    test_state.d = 0x33;
+    test_state.e = 0x55;
+    test_state.h = 0x00;
+    test_state.l = 0xFF;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.d, 0x00, "Register D was not exchanged with register H");
+    result = result & assert_equals(test_state.e, 0xFF, "Register E was not exchanged with register L");
+    result = result & assert_equals(test_state.h, 0x33, "Register H was not exchanged with register D");
+    result = result & assert_equals(test_state.l, 0x55, "Register L was not exchanged with register E");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_xthl() {
+    State test_state = create_test_state(sizeof(uint8_t) * 10);
+    test_state.memory[0] = 0xE3;
+    test_state.memory[9] = 0x0D;
+    test_state.memory[8] = 0xF0;
+    test_state.sp = 0x0008;
+    test_state.h = 0x0B;
+    test_state.l = 0x3C;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.h, 0x0D, "Register H was not exchanged with byte at sp + 1");
+    result = result & assert_equals(test_state.l, 0xF0, "Register L was not exchanged with byte at sp");
+    result = result & assert_equals(test_state.memory[9], 0x0B, "Memory at sp + 1 was not exchanged with register H");
+    result = result & assert_equals(test_state.memory[8], 0x3C, "Memory at sp was not exchanged with register L");
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_sphl() {
+    State test_state = create_test_state(sizeof(uint8_t) * 2);
+    test_state.memory[0] = 0xF9;
+    test_state.sp = 0x0008;
+    test_state.h = 0x50;
+    test_state.l = 0x6C;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.h, 0x50, "Register H was changed");
+    result = result & assert_equals(test_state.l, 0x6C, "Register L was changed");
+    if (test_state.sp != 0x506C) {
+        printf("SP was not updated with contents of registers H and L\n");
+        return false;
+    }
+    result = result & assert_equals(test_state.pc, 0x01, "PC was not incremented");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    
+    cleanup_test_state(test_state);
+    return result;
+}
 
 int main(int argc, char** argv){
     run_test_func(test_push_b, "Test PUSH B");
@@ -251,5 +330,8 @@ int main(int argc, char** argv){
     run_test_func(test_inx_sp, "Test INX SP");
     run_test_func(test_dcx_h, "Test DCX H");
     run_test_func(test_dcx_sp, "Test DCX SP");
+    run_test_func(test_xchg, "Test XCHG");
+    run_test_func(test_xthl, "Test XTHL");
+    run_test_func(test_sphl, "Test SPHL");
     return 0;
 }

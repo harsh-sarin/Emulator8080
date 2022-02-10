@@ -19,3 +19,9 @@ void inx_sp(State* state);
 void dcx(State* state, uint8_t* register_higher, uint8_t* register_lower);
 
 void dcx_sp(State* state);
+
+void xchg(State* state);
+
+void xthl(State* state);
+
+void sphl(State* state);

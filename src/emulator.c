@@ -974,8 +974,8 @@ void Emulate8080(State *state)
     case 0xe2:
         UnimplementedInstruction(state);
         break;
-    case 0xe3:
-        UnimplementedInstruction(state);
+    case 0xe3: // XTHL
+        xthl(state);
         break;
     case 0xe4:
         UnimplementedInstruction(state);
@@ -998,8 +998,8 @@ void Emulate8080(State *state)
     case 0xea:
         UnimplementedInstruction(state);
         break;
-    case 0xeb:
-        UnimplementedInstruction(state);
+    case 0xeb: // XCHG
+        xchg(state);
         break;
     case 0xec:
         UnimplementedInstruction(state);
@@ -1040,8 +1040,8 @@ void Emulate8080(State *state)
     case 0xf8:
         UnimplementedInstruction(state);
         break;
-    case 0xf9:
-        UnimplementedInstruction(state);
+    case 0xf9: // SPHL
+        sphl(state);
         break;
     case 0xfa:
         UnimplementedInstruction(state);

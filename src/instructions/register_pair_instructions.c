@@ -79,3 +79,28 @@ void dcx_sp(State* state) {
     state->sp--;
     state->pc += 1;
 }
+
+void xchg(State* state) {
+    uint8_t temp_d = state->d;
+    uint8_t temp_e = state->e;
+    state->d = state->h;
+    state->e = state->l;
+    state->h = temp_d;
+    state->l = temp_e;
+    state->pc += 1;
+}
+
+void xthl(State* state) {
+    uint8_t temp_h = state->h;
+    uint8_t temp_l = state->l;
+    state->h = state->memory[state->sp+1];
+    state->l = state->memory[state->sp];
+    state->memory[state->sp+1] = temp_h;
+    state->memory[state->sp] = temp_l;
+    state->pc += 1;
+}
+
+void sphl(State* state) {
+    state->sp = (((uint16_t) state->h) << 8) | ((uint16_t) state->l);
+    state->pc += 1;
+}
