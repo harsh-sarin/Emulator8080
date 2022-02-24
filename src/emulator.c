@@ -6,6 +6,7 @@
 #include "emulator.h"
 #include "instructions.h"
 #include "register_pair_instructions.h"
+#include "immediate_instructions.h"
 
 void UnimplementedInstruction(State *state)
 {
@@ -21,9 +22,7 @@ void Emulate8080(State *state)
     case 0x00:
         break;
     case 0x01: // LXI B,immediate data
-        state->c = opcode[1];
-        state->b = opcode[2];
-        state->pc += 3;
+        lxi(state, &state->b, &state->c, opcode[2], opcode[1]);
         break;
     case 0x02: // STAX B
         {
@@ -44,8 +43,7 @@ void Emulate8080(State *state)
         state->pc += 1;
         break;
     case 0x06: // MVI B,immediate data
-        state->b = opcode[1];
-        state->pc += 2;
+        mvi(state, &state->b, opcode[1]);
         break;
     case 0x07: // RLC
     {
@@ -78,9 +76,8 @@ void Emulate8080(State *state)
         single_dcr_register(state, &state->c);
         state->pc += 1;
         break;
-    case 0x0e: // MVI C, immediate data
-        state->c = opcode[1];
-        state->pc += 2;
+    case 0x0e: // MVI C,immediate data
+        mvi(state, &state->c, opcode[1]);
         break;
     case 0x0f: //RRC
         {
@@ -92,8 +89,8 @@ void Emulate8080(State *state)
     case 0x10:
         UnimplementedInstruction(state);
         break;
-    case 0x11:
-        UnimplementedInstruction(state);
+    case 0x11: // LXI D,immediate data
+        lxi(state, &state->d, &state->e, opcode[2], opcode[1]);
         break;
     case 0x12: // STAX D
         {
@@ -113,8 +110,8 @@ void Emulate8080(State *state)
         single_dcr_register(state, &state->d);
         state->pc += 1;
         break;
-    case 0x16:
-        UnimplementedInstruction(state);
+    case 0x16: // MVI D,immediate data
+        mvi(state, &state->d, opcode[1]);
         break;
     case 0x17: // RAL
         {
@@ -148,8 +145,8 @@ void Emulate8080(State *state)
         single_dcr_register(state, &state->e);
         state->pc += 1;
         break;
-    case 0x1e:
-        UnimplementedInstruction(state);
+    case 0x1e: // MVI E,immediate data
+        mvi(state, &state->e, opcode[1]);
         break;
     case 0x1f: // RAR
         {
@@ -162,8 +159,8 @@ void Emulate8080(State *state)
     case 0x20:
         UnimplementedInstruction(state);
         break;
-    case 0x21:
-        UnimplementedInstruction(state);
+    case 0x21: // LXI H,immediate data
+        lxi(state, &state->h, &state->l, opcode[2], opcode[1]);
         break;
     case 0x22:
         UnimplementedInstruction(state);
@@ -179,8 +176,8 @@ void Emulate8080(State *state)
         single_dcr_register(state, &state->h);
         state->pc += 1;
         break;
-    case 0x26:
-        UnimplementedInstruction(state);
+    case 0x26: // MVI H,immediate data
+        mvi(state, &state->h, opcode[1]);
         break;
     case 0x27: // DAA
     {
@@ -238,8 +235,8 @@ void Emulate8080(State *state)
         single_dcr_register(state, &state->l);
         state->pc += 1;
         break;
-    case 0x2e:
-        UnimplementedInstruction(state);
+    case 0x2e: // MVI L,immediate data
+        mvi(state, &state->l, opcode[1]);
         break;
     case 0x2f: // CMA
         state->a = ~state->a;
@@ -248,8 +245,8 @@ void Emulate8080(State *state)
     case 0x30:
         UnimplementedInstruction(state);
         break;
-    case 0x31:
-        UnimplementedInstruction(state);
+    case 0x31: // LXI SP,immediate data
+        lxi_sp(state, opcode[2], opcode[1]);
         break;
     case 0x32:
         UnimplementedInstruction(state);
@@ -265,8 +262,8 @@ void Emulate8080(State *state)
         single_dcr_memory(state);
         state->pc += 1;
         break;
-    case 0x36:
-        UnimplementedInstruction(state);
+    case 0x36: // MVI M,immediate data
+        mvi_m(state, opcode[1]);
         break;
     case 0x37: // STC
         state->cc.cy = 1;
@@ -292,8 +289,8 @@ void Emulate8080(State *state)
         single_dcr_register(state, &state->a);
         state->pc += 1;
         break;
-    case 0x3e:
-        UnimplementedInstruction(state);
+    case 0x3e: // MVI A, immediate data
+        mvi(state, &state->a, opcode[1]);
         break;
     case 0x3f: // CMC
         state->cc.cy = ~state->cc.cy;
@@ -887,8 +884,8 @@ void Emulate8080(State *state)
     case 0xc5: // PUSH B
         push_register_pair_to_stack(state, state->b, state->c);
         break;
-    case 0xc6:
-        UnimplementedInstruction(state);
+    case 0xc6: // ADI
+        adi(state, opcode[1]);
         break;
     case 0xc7:
         UnimplementedInstruction(state);
@@ -911,8 +908,8 @@ void Emulate8080(State *state)
     case 0xcd:
         UnimplementedInstruction(state);
         break;
-    case 0xce:
-        UnimplementedInstruction(state);
+    case 0xce: // ACI
+        aci(state, opcode[1]);
         break;
     case 0xcf:
         UnimplementedInstruction(state);

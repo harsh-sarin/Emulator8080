@@ -39,17 +39,33 @@ testRotateAccumulatorInstructions: emulator.o instructions.o
 test-register-pair: test-register-pair-instructions
 				./out/test-register-pair-instructions
 
-test-register-pair-instructions: emulator.o instructions.o register_pair_instructions.o
+test-register-pair-instructions: emulator.o helper.o instructions.o register_pair_instructions.o
 				gcc -I$(includes_path) ./tests/test_register_pair_instructions.c ./out/emulator.o ./out/instructions.o ./out/register_pair_instructions.o -o ./out/test-register-pair-instructions
+
+test-immediate: test-immediate-instructions
+				./out/test-immediate-instructions
+
+test-immediate-instructions: emulator-combined.o
+				gcc -I$(includes_path) ./tests/test_immediate_instructions.c ./out/emulator-combined.o -o ./out/test-immediate-instructions
+
+
+emulator-combined.o: emulator.o helper.o instructions.o register_pair_instructions.o immediate_instructions.o
+		gcc -r ./out/emulator.o ./out/helper.o ./out/instructions.o ./out/register_pair_instructions.o ./out/immediate_instructions.o -o ./out/emulator-combined.o
 
 emulator.o: emulator.c
 		gcc -I$(includes_path) -c ./src/emulator.c -o ./out/emulator.o
+
+helper.o: helper.c
+		gcc -I$(includes_path) -c ./src/helper.c -o ./out/helper.o
 
 instructions.o: instructions.c
 		gcc -I/$(includes_path) -c ./src/instructions.c -o ./out/instructions.o
 
 register_pair_instructions.o: register_pair_instructions.c
 		gcc -I/$(includes_path) -c ./src/instructions/register_pair_instructions.c -o ./out/register_pair_instructions.o
+
+immediate_instructions.o: immediate_instructions.c
+		gcc -I/$(includes_path) -c ./src/instructions/immediate_instructions.c -o ./out/immediate_instructions.o
 
 clean:
 	rm ./out/*
