@@ -6,7 +6,7 @@ includes_path = $(CURDIR)/include
 
 test: test-register-to-acc test-rotate-acc test-single-register test-data-transfer test-carry-bit
 
-test-single-register: testSingleRegisterInstructions
+test-single-register: testSinleRegisterInstructions
 				./out/testSingleRegisterInstructions
 
 testSingleRegisterInstructions: emulator.o
@@ -49,8 +49,8 @@ test-immediate-instructions: emulator-combined.o
 				gcc -I$(includes_path) ./tests/test_immediate_instructions.c ./out/emulator-combined.o -o ./out/test-immediate-instructions
 
 
-emulator-combined.o: emulator.o helper.o instructions.o register_pair_instructions.o immediate_instructions.o
-		gcc -r ./out/emulator.o ./out/helper.o ./out/instructions.o ./out/register_pair_instructions.o ./out/immediate_instructions.o -o ./out/emulator-combined.o
+emulator-combined.o: emulator.o helper.o arithmetic_and_logical.o single_register.o register_pair_instructions.o immediate_instructions.o
+		gcc -r ./out/emulator.o ./out/helper.o ./out/arithmetic_and_logical.o ./out/single_register.o ./out/register_pair_instructions.o ./out/immediate_instructions.o -o ./out/emulator-combined.o
 
 emulator.o: emulator.c
 		gcc -I$(includes_path) -c ./src/emulator.c -o ./out/emulator.o
@@ -58,8 +58,11 @@ emulator.o: emulator.c
 helper.o: helper.c
 		gcc -I$(includes_path) -c ./src/helper.c -o ./out/helper.o
 
-instructions.o: instructions.c
-		gcc -I/$(includes_path) -c ./src/instructions.c -o ./out/instructions.o
+arithmetic_and_logical.o: arithmetic_and_logical.c
+		gcc -I/$(includes_path) -c ./src/instructions/arithmetic_and_logical.c -o ./out/arithmetic_and_logical.o
+
+single_register.o: single_register.c
+		gcc -I/$(includes_path) -c ./src/instructions/single_register.c -o ./out/single_register.o
 
 register_pair_instructions.o: register_pair_instructions.c
 		gcc -I/$(includes_path) -c ./src/instructions/register_pair_instructions.c -o ./out/register_pair_instructions.o

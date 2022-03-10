@@ -4,7 +4,9 @@
 #include <stdbool.h>
 #include "domain.h"
 #include "emulator.h"
-#include "instructions.h"
+#include "helper.h"
+#include "arithmetic_and_logical.h"
+#include "single_register.h"
 #include "register_pair_instructions.h"
 #include "immediate_instructions.h"
 
@@ -885,7 +887,8 @@ void Emulate8080(State *state)
         push_register_pair_to_stack(state, state->b, state->c);
         break;
     case 0xc6: // ADI
-        adi(state, opcode[1]);
+        add_value_to_accumulator(state, opcode[1]);
+        state->pc += 2;
         break;
     case 0xc7:
         UnimplementedInstruction(state);
@@ -909,7 +912,8 @@ void Emulate8080(State *state)
         UnimplementedInstruction(state);
         break;
     case 0xce: // ACI
-        aci(state, opcode[1]);
+        add_value_and_carry_to_accumulator(state, opcode[1]);
+        state->pc += 2;
         break;
     case 0xcf:
         UnimplementedInstruction(state);
@@ -933,7 +937,8 @@ void Emulate8080(State *state)
         push_register_pair_to_stack(state, state->d, state->e);
         break;
     case 0xd6: // SUI
-        sui(state, opcode[1]);
+        subtract_value_from_accumulator(state, opcode[1]);
+        state->pc += 2;
         break;
     case 0xd7:
         UnimplementedInstruction(state);
@@ -957,7 +962,8 @@ void Emulate8080(State *state)
         UnimplementedInstruction(state);
         break;
     case 0xde: // SBI
-        sbi(state, opcode[1]);
+        subtract_value_and_borrow_from_accumulator(state, opcode[1]);
+        state->pc += 2;
         break;
     case 0xdf:
         UnimplementedInstruction(state);
@@ -980,8 +986,9 @@ void Emulate8080(State *state)
     case 0xe5: // PUSH H
         push_register_pair_to_stack(state, state->h, state->l);
         break;
-    case 0xe6:
-        UnimplementedInstruction(state);
+    case 0xe6: //ANI
+        ana(state, opcode[1]);
+        state->pc += 2;
         break;
     case 0xe7:
         UnimplementedInstruction(state);
