@@ -35,3 +35,18 @@ void update_condition_codes_due_to_add(State *some_state, uint16_t sum, uint8_t 
         some_state->cc.ac = 0;
     }
 }
+
+void update_condition_codes_due_to_subtract(State *some_state, uint16_t difference, uint8_t subtrahend) {
+    some_state->cc.cy = !(difference > 0xFF);
+    some_state->cc.z = ((difference & 0xFF) == 0);
+    some_state->cc.s = ((difference & 0x80) == 0x80);
+    some_state->cc.p = is_even_parity((difference & 0xFF));
+    bool is_acc_bit_pos_3_set = ((some_state->a & 0x08) == 0x08);
+    bool is_subtrahend_bit_pos_3_set = ((subtrahend & 0x08) == 0x08);
+    if ((is_acc_bit_pos_3_set && is_subtrahend_bit_pos_3_set) || 
+        ((is_acc_bit_pos_3_set || is_subtrahend_bit_pos_3_set) && (difference & 0x08) == 0)){
+        some_state->cc.ac = 1;
+    } else {
+        some_state->cc.ac = 0;
+    }
+}

@@ -39,3 +39,20 @@ void aci(State* state, uint8_t addend) {
     state->a = sum & 0xFF;
     state->pc += 2;
 }
+
+void sui(State* state, uint8_t subtrahend) {
+    uint8_t subtrahend_two_complement = (~subtrahend) + 0x01;
+    uint16_t difference = (uint16_t) state->a + (uint16_t) subtrahend_two_complement;
+    update_condition_codes_due_to_subtract(state, difference, subtrahend_two_complement);
+    state->a = difference & 0xFF;
+    state->pc += 2;
+}
+
+void sbi(State* state, uint8_t subtrahend) {
+    uint8_t subtrahend_with_borrow_added = (subtrahend + (state->cc.cy == 1 ? 0x01 : 0x00)) & 0xFF;
+    uint8_t subtrahend_two_complement = (~subtrahend_with_borrow_added) + 0x01;
+    uint16_t difference = (uint16_t) state->a + (uint16_t) subtrahend_two_complement;
+    update_condition_codes_due_to_subtract(state, difference, subtrahend_two_complement);
+    state->a = difference & 0xFF;
+    state->pc += 2;
+}

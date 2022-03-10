@@ -169,6 +169,51 @@ bool test_aci() {
     return result;
 }
 
+bool test_sui() {
+    State test_state = create_test_state(sizeof(uint8_t) * 5);
+    test_state.memory[0] = 0x3E; // MVI A, 0x20
+    test_state.memory[1] = 0x20;
+    test_state.memory[2] = 0xD6; // SUI, 0x36
+    test_state.memory[3] = 0x36;
+
+    for (int i=0; i < 2; i++) {
+        Emulate8080(&test_state);
+    }
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0xEA, "Register A does not contain the expected result of subtraction: 0xEA");
+    result = result & assert_equals(test_state.cc.cy, 1, "Carry bit shows borrow did not occur");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set after subtraction");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set after subtraction");
+    result = result & assert_equals(test_state.cc.s, 1, "Sign bit was not set after subtraction");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set after subtraction");
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_sbi() {
+    State test_state = create_test_state(sizeof(uint8_t) * 5);
+    test_state.memory[0] = 0x3E; // MVI A, 0x36
+    test_state.memory[1] = 0x36;
+    test_state.memory[2] = 0xDE; // SBI, 0x36
+    test_state.memory[3] = 0x36;
+    test_state.cc.cy = 1;
+
+    for (int i=0; i < 2; i++) {
+        Emulate8080(&test_state);
+    }
+
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0xFF, "Register A does not contain the expected result of subtraction: 0xFF");
+    result = result & assert_equals(test_state.cc.cy, 1, "Carry bit shows borrow did not occur");
+    result = result & assert_equals(test_state.cc.p, 1, "Parity bit was reset after subtraction");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set after subtraction");
+    result = result & assert_equals(test_state.cc.s, 1, "Sign bit was not set after subtraction");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set after subtraction");
+    cleanup_test_state(test_state);
+    return result;
+}
+
 int main(int argc, char** argv){
     run_test_func(test_lxi_h, "Test LXI H");
     run_test_func(test_lxi_sp, "Test LXI SP");
@@ -176,5 +221,7 @@ int main(int argc, char** argv){
     run_test_func(test_mvi_m, "Test MVI M");
     run_test_func(test_adi, "Test ADI");
     run_test_func(test_aci, "Test ACI");
+    run_test_func(test_sui, "Test SUI");
+    run_test_func(test_sbi, "Test SBI");
     return 0;
 }

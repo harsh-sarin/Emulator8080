@@ -932,8 +932,8 @@ void Emulate8080(State *state)
     case 0xd5: // PUSH D
         push_register_pair_to_stack(state, state->d, state->e);
         break;
-    case 0xd6:
-        UnimplementedInstruction(state);
+    case 0xd6: // SUI
+        sui(state, opcode[1]);
         break;
     case 0xd7:
         UnimplementedInstruction(state);
@@ -956,8 +956,8 @@ void Emulate8080(State *state)
     case 0xdd:
         UnimplementedInstruction(state);
         break;
-    case 0xde:
-        UnimplementedInstruction(state);
+    case 0xde: // SBI
+        sbi(state, opcode[1]);
         break;
     case 0xdf:
         UnimplementedInstruction(state);
