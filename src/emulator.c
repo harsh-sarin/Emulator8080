@@ -1011,8 +1011,8 @@ void Emulate8080(State *state)
     case 0xed:
         UnimplementedInstruction(state);
         break;
-    case 0xee:
-        UnimplementedInstruction(state);
+    case 0xee: // XRI
+        xri(state, opcode[1]);
         break;
     case 0xef:
         UnimplementedInstruction(state);
@@ -1035,8 +1035,8 @@ void Emulate8080(State *state)
     case 0xf5:
         push_psw(state);
         break;
-    case 0xf6:
-        UnimplementedInstruction(state);
+    case 0xf6: // ORI
+        ori(state, opcode[1]);
         break;
     case 0xf7:
         UnimplementedInstruction(state);
@@ -1059,8 +1059,8 @@ void Emulate8080(State *state)
     case 0xfd:
         UnimplementedInstruction(state);
         break;
-    case 0xfe:
-        UnimplementedInstruction(state);
+    case 0xfe: // CPI
+        cpi(state, opcode[1]);
         break;
     case 0xff:
         UnimplementedInstruction(state);

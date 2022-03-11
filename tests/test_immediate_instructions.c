@@ -220,19 +220,80 @@ bool test_ani() {
     test_state.memory[1] = 0x4A;
     test_state.memory[2] = 0xE6; // ANI, 0x0F
     test_state.memory[3] = 0x0F;
-    test_state.cc.cy = 1;
 
     for (int i=0; i < 2; i++) {
         Emulate8080(&test_state);
     }
 
     int result = 1;
-    result = result & assert_equals(test_state.a, 0x0A, "Register A does not contain the expected result of logical and: 0x0A");
+    result = result & assert_equals(test_state.a, 0x0A, "Register A does not contain the expected result of AND: 0x0A");
     result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
     result = result & assert_equals(test_state.cc.p, 1, "Parity bit was reset");
     result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
     result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
     result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_xri() {
+    State test_state = create_test_state(sizeof(uint8_t) * 3);
+    test_state.memory[0] = 0xEE; // XRI, 0x81
+    test_state.memory[1] = 0x81;
+    test_state.a = 0x3B;
+    test_state.cc.cy = 1;
+    test_state.cc.ac = 1;
+    
+    Emulate8080(&test_state);
+    
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0xBA, "Register A does not contain the expected result of XOR: 0xBA");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was not reset to 0");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 1, "Aux carry bit was altered by the operation");
+    result = result & assert_equals(test_state.cc.s, 1, "Sign bit was reset");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_ori() {
+    State test_state = create_test_state(sizeof(uint8_t) * 3);
+    test_state.memory[0] = 0xF6; // ORI, 0x0F
+    test_state.memory[1] = 0x0F;
+    test_state.a = 0xB5;
+    test_state.cc.cy = 1;
+    test_state.cc.ac = 1;
+    
+    Emulate8080(&test_state);
+    
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0xBF, "Register A does not contain the expected result of ORI: 0xBF");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was not reset to 0");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 1, "Aux carry bit was altered by the operation");
+    result = result & assert_equals(test_state.cc.s, 1, "Sign bit was reset");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_cpi() {
+    State test_state = create_test_state(sizeof(uint8_t) * 3);
+    test_state.memory[0] = 0xFE; // CPI, 0x40
+    test_state.memory[1] = 0x40;
+    test_state.a = 0x4A;
+    test_state.cc.cy = 1;
+
+    Emulate8080(&test_state);
+    
+    int result = 1;
+    result = result & assert_equals(test_state.a, 0x4A, "Register A should not have been updated due to CPI");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit does not indicate that accumulator data is greater than immediate data");
+    result = result & assert_equals(test_state.cc.p, 1, "Parity bit was reset");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit does not indicate that accumulator data and immediate data are unequal");
     cleanup_test_state(test_state);
     return result;
 }
@@ -247,5 +308,8 @@ int main(int argc, char** argv){
     run_test_func(test_sui, "Test SUI");
     run_test_func(test_sbi, "Test SBI");
     run_test_func(test_ani, "Test ANI");
+    run_test_func(test_xri, "Test XRI");
+    run_test_func(test_ori, "Test ORI");
+    run_test_func(test_cpi, "Test CPI");
     return 0;
 }

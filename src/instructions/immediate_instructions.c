@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "domain.h"
 #include "helper.h"
+#include "arithmetic_and_logical.h"
 
 void lxi(State* state, uint8_t* register_higher, uint8_t* register_lower, uint8_t data_higher, uint8_t data_lower) {
     *register_higher = data_higher;
@@ -23,5 +24,20 @@ void mvi(State* state, uint8_t* target_register, uint8_t data) {
 void mvi_m(State* state, uint8_t data) {
     uint16_t location = (((uint16_t) state->h) << 8) | ((uint16_t) state->l);
     state->memory[location] = data;
+    state->pc += 2;
+}
+
+void xri(State* state, uint8_t data) {
+    xra(state, data);
+    state->pc += 2;
+}
+
+void ori(State* state, uint8_t data) {
+    ora(state, data);
+    state->pc += 2;
+}
+
+void cpi(State* state, uint8_t data) {
+    cmp(state, data);
     state->pc += 2;
 }
