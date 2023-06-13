@@ -9,6 +9,7 @@
 #include "single_register.h"
 #include "register_pair_instructions.h"
 #include "immediate_instructions.h"
+#include "direct_addressing.h"
 
 void UnimplementedInstruction(State *state)
 {
@@ -250,8 +251,8 @@ void Emulate8080(State *state)
     case 0x31: // LXI SP,immediate data
         lxi_sp(state, opcode[2], opcode[1]);
         break;
-    case 0x32:
-        UnimplementedInstruction(state);
+    case 0x32: // STA
+        sta(state, opcode[1], opcode[2]);
         break;
     case 0x33: // INX SP
         inx_sp(state);

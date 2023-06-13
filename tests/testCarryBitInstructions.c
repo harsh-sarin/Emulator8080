@@ -36,6 +36,7 @@ State create_test_state(uint8_t mem_size) {
     State test_state;
 
     ConditionCodes condition_codes;
+    condition_codes.ac = 0;
     test_state.cc = condition_codes;
 
     uint8_t* mem;

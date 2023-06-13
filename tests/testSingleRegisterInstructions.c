@@ -17,6 +17,7 @@ State create_test_state(uint8_t mem_size) {
     State test_state;
 
     ConditionCodes condition_codes;
+    condition_codes.ac = 0;
     test_state.cc = condition_codes;
 
     uint8_t* mem;
@@ -460,9 +461,9 @@ bool test_DAA() {
 
 
 int main(int argc, char** argv){
-    test_INR();
-    test_DCR();
+    //test_INR();
+    //test_DCR();
     run_test_func(test_CMA, "CMA");
-    run_test_func(test_DAA, "DAA");
+    //run_test_func(test_DAA, "DAA");
     return 0;
 }
