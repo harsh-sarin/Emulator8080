@@ -165,8 +165,8 @@ void Emulate8080(State *state)
     case 0x21: // LXI H,immediate data
         lxi(state, &state->h, &state->l, opcode[2], opcode[1]);
         break;
-    case 0x22:
-        UnimplementedInstruction(state);
+    case 0x22: // SHLD
+        shld(state, opcode[1], opcode[2]);
         break;
     case 0x23: // INX H
         inx(state, &state->h, &state->l);
@@ -278,8 +278,8 @@ void Emulate8080(State *state)
     case 0x39: // DAD SP
         dad(state, ((state->sp & 0xff00) >> 8), (state->sp & 0x00ff));
         break;
-    case 0x3a:
-        UnimplementedInstruction(state);
+    case 0x3a: // LDA
+        lda(state, opcode[1], opcode[2]);
         break;
     case 0x3b: // DCX SP
         dcx_sp(state);
