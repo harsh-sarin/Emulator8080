@@ -10,6 +10,7 @@
 #include "register_pair_instructions.h"
 #include "immediate_instructions.h"
 #include "direct_addressing.h"
+#include "jump_instructions.h"
 
 void UnimplementedInstruction(State *state)
 {
@@ -224,8 +225,8 @@ void Emulate8080(State *state)
     case 0x29: // DAD H
         dad(state, state->h, state->l);
         break;
-    case 0x2a:
-        UnimplementedInstruction(state);
+    case 0x2a: // LHLD
+        lhld(state, opcode[1], opcode[2]);
         break;
     case 0x2b: // DCX H
         dcx(state, &state->h, &state->l);
@@ -878,8 +879,8 @@ void Emulate8080(State *state)
     case 0xc2:
         UnimplementedInstruction(state);
         break;
-    case 0xc3:
-        UnimplementedInstruction(state);
+    case 0xc3: //JMP
+        jmp(state, opcode[1], opcode[2]);
         break;
     case 0xc4:
         UnimplementedInstruction(state);
@@ -950,8 +951,8 @@ void Emulate8080(State *state)
     case 0xd9:
         UnimplementedInstruction(state);
         break;
-    case 0xda:
-        UnimplementedInstruction(state);
+    case 0xda: //JC
+        jc(state, opcode[1], opcode[2]);
         break;
     case 0xdb:
         UnimplementedInstruction(state);
@@ -997,8 +998,8 @@ void Emulate8080(State *state)
     case 0xe8:
         UnimplementedInstruction(state);
         break;
-    case 0xe9:
-        UnimplementedInstruction(state);
+    case 0xe9: //PCHL
+        pchl(state);
         break;
     case 0xea:
         UnimplementedInstruction(state);

@@ -4,7 +4,7 @@ vpath %.o out
 
 includes_path = $(CURDIR)/include 
 
-test: test-single-register test-data-transfer test-carry-bit test-register-to-acc test-rotate-acc  test-direct-addressing test-immediate test-register-pair-instructions
+test: test-single-register test-data-transfer test-carry-bit test-register-to-acc test-rotate-acc  test-direct-addressing test-immediate test-register-pair-instructions test-jump
 
 test-single-register: emulator-combined.o
 				gcc -I$(includes_path) ./tests/testSingleRegisterInstructions.c ./out/emulator-combined.o  -o ./out/testSingleRegisterInstructions
@@ -38,8 +38,12 @@ test-direct-addressing: emulator-combined.o
 				gcc -I$(includes_path) ./tests/test_direct_addressing.c ./out/emulator-combined.o -o ./out/test_direct_addressing
 				./out/test_direct_addressing
 
-emulator-combined.o: emulator.o helper.o arithmetic_and_logical.o single_register.o register_pair_instructions.o immediate_instructions.o direct_addressing.o
-		gcc -r ./out/emulator.o ./out/helper.o ./out/arithmetic_and_logical.o ./out/single_register.o ./out/register_pair_instructions.o ./out/immediate_instructions.o ./out/direct_addressing.o -o ./out/emulator-combined.o
+test-jump: emulator-combined.o
+				gcc -I$(includes_path) ./tests/test_jump_instructions.c ./out/emulator-combined.o -o ./out/test_jump_instructions
+				./out/test_jump_instructions
+
+emulator-combined.o: emulator.o helper.o arithmetic_and_logical.o single_register.o register_pair_instructions.o immediate_instructions.o direct_addressing.o jump_instructions.o
+		gcc -r ./out/emulator.o ./out/helper.o ./out/arithmetic_and_logical.o ./out/single_register.o ./out/register_pair_instructions.o ./out/immediate_instructions.o ./out/direct_addressing.o ./out/jump_instructions.o -o ./out/emulator-combined.o
 
 emulator.o: emulator.c
 		gcc -I$(includes_path) -c ./src/emulator.c -o ./out/emulator.o
@@ -61,6 +65,9 @@ immediate_instructions.o: immediate_instructions.c
 
 direct_addressing.o: direct_addressing.c
 		gcc -I/$(includes_path) -c ./src/instructions/direct_addressing.c -o ./out/direct_addressing.o
+
+jump_instructions.o: jump_instructions.c
+		gcc -I/$(includes_path) -c ./src/instructions/jump_instructions.c -o ./out/jump_instructions.o
 
 clean:
 	rm ./out/*
