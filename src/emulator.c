@@ -876,8 +876,8 @@ void Emulate8080(State *state)
     case 0xc1: // POP B
         pop_from_stack_to_register_pair(state, &state->b, &state->c);
         break;
-    case 0xc2:
-        UnimplementedInstruction(state);
+    case 0xc2: // JNZ
+        jnz(state, opcode[1], opcode[2]);
         break;
     case 0xc3: //JMP
         jmp(state, opcode[1], opcode[2]);
@@ -901,8 +901,8 @@ void Emulate8080(State *state)
     case 0xc9:
         UnimplementedInstruction(state);
         break;
-    case 0xca:
-        UnimplementedInstruction(state);
+    case 0xca: // JZ
+        jz(state, opcode[1], opcode[2]);
         break;
     case 0xcb:
         UnimplementedInstruction(state);
@@ -926,8 +926,8 @@ void Emulate8080(State *state)
     case 0xd1: // POP D
         pop_from_stack_to_register_pair(state, &state->d, &state->e);
         break;
-    case 0xd2:
-        UnimplementedInstruction(state);
+    case 0xd2: // JNC
+        jnc(state, opcode[1], opcode[2]);
         break;
     case 0xd3:
         UnimplementedInstruction(state);
