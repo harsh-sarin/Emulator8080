@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-bool opcodes_used[256];
+//bool opcodes_used[256];
 
 int Disassemble8080p(unsigned char* codebuffer, int pc) {
     unsigned char* code = &codebuffer[pc];
@@ -267,34 +267,34 @@ int Disassemble8080p(unsigned char* codebuffer, int pc) {
 		case 0xff: printf("RST 7"); opbytes = 1; break;
     }
 	printf("\n");
-	opcodes_used[*code] = true;
+	//opcodes_used[*code] = true;
 	return opbytes;
 }
 
-int main(int argc, char** argv) {
-	FILE *f = fopen(argv[1], "rb");
-	if (f == NULL) {
-		printf("Error: Failed to open %s\n", argv[1]);
-		exit(1);
-	}
+// int main(int argc, char** argv) {
+// 	FILE *f = fopen(argv[1], "rb");
+// 	if (f == NULL) {
+// 		printf("Error: Failed to open %s\n", argv[1]);
+// 		exit(1);
+// 	}
 
-	fseek(f, 0L, SEEK_END);
-	int fsize = ftell(f);
-	fseek(f, 0L, SEEK_SET);
+// 	fseek(f, 0L, SEEK_END);
+// 	int fsize = ftell(f);
+// 	fseek(f, 0L, SEEK_SET);
 
-	unsigned char *buffer = malloc(fsize);
-	fread(buffer, fsize, 1, f);
-	fclose(f);
+// 	unsigned char *buffer = malloc(fsize);
+// 	fread(buffer, fsize, 1, f);
+// 	fclose(f);
 
-	int pc = 0;
-	while (pc < fsize) {
-		pc += Disassemble8080p(buffer, pc);
-	}
-	printf("=============================\n");
-	for (int i=0; i < 256; i++) {
-		if (opcodes_used[i]) {
-			printf("%x\n", (i & 0xff));
-		}
-	}
-	return 0;
-}
+// 	int pc = 0;
+// 	while (pc < fsize) {
+// 		pc += Disassemble8080p(buffer, pc);
+// 	}
+// 	printf("=============================\n");
+// 	for (int i=0; i < 256; i++) {
+// 		if (opcodes_used[i]) {
+// 			printf("%x\n", (i & 0xff));
+// 		}
+// 	}
+// 	return 0;
+// }

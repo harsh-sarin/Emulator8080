@@ -35,3 +35,15 @@ void jz(State* state, uint8_t lower_address, uint8_t higher_address) {
 void jnz(State* state, uint8_t lower_address, uint8_t higher_address) {
     jump_if_true(state, lower_address, higher_address, state->cc.z == 0);
 }
+
+void jm(State* state, uint8_t lower_address, uint8_t higher_address) {
+    jump_if_true(state, lower_address, higher_address, state->cc.s == 1);   
+}
+
+void jp(State* state, uint8_t lower_address, uint8_t higher_address) {
+    jump_if_true(state, lower_address, higher_address, state->cc.s == 0);
+}
+
+void jpo(State* state, uint8_t lower_address, uint8_t higher_address) {
+    jump_if_true(state, lower_address, higher_address, state->cc.p == 0);
+}

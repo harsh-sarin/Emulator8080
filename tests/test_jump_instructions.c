@@ -224,6 +224,135 @@ bool test_jnz_zero_set() {
     return result;
 }
 
+bool test_jm_sign_set() {
+    State test_state = create_test_state(sizeof(uint8_t) * 10);
+    test_state.memory[0] = 0xfa; //JM
+    test_state.memory[1] = 0x07;
+    test_state.memory[2] = 0x00;
+    test_state.memory[7] = 0xf1; //some random instruction
+    test_state.cc.s = 1;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.pc, 0x07, "Program counter was not jumped to address specified in JM instruction");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 1, "Sign bit was reset");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");    
+
+    cleanup_test_state(test_state);
+    return result;
+    
+}
+
+bool test_jm_sign_reset() {
+    State test_state = create_test_state(sizeof(uint8_t) * 10);
+    test_state.memory[0] = 0xfa; //JZ 
+    test_state.memory[1] = 0x07;
+    test_state.memory[2] = 0x00;
+    test_state.memory[7] = 0xf1; //some random instruction
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.pc, 0x03, "Program counter was jumped to address specified in JM instruction");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");    
+
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_jp_sign_reset() {
+    State test_state = create_test_state(sizeof(uint8_t) * 10);
+    test_state.memory[0] = 0xf2; //JP
+    test_state.memory[1] = 0x09;
+    test_state.memory[2] = 0x00;
+    test_state.memory[9] = 0xf1; //some random instruction
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.pc, 0x09, "Program counter was not jumped to address specified in JP instruction");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");    
+
+    cleanup_test_state(test_state);
+    return result; 
+}
+
+bool test_jp_sign_set() {
+    State test_state = create_test_state(sizeof(uint8_t) * 10);
+    test_state.memory[0] = 0xf2; //JP
+    test_state.memory[1] = 0x07;
+    test_state.memory[2] = 0x00;
+    test_state.memory[7] = 0xf1; //some random instruction
+    test_state.cc.s = 1;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.pc, 0x03, "Program counter was jumped to address specified in JP instruction");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 1, "Sign bit was reset");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");    
+
+    cleanup_test_state(test_state);
+    return result;
+}
+
+bool test_jpo_parity_reset() {
+    State test_state = create_test_state(sizeof(uint8_t) * 10);
+    test_state.memory[0] = 0xe2; //JPO
+    test_state.memory[1] = 0x09;
+    test_state.memory[2] = 0x00;
+    test_state.memory[9] = 0xf1; //some random instruction
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.pc, 0x09, "Program counter was not jumped to address specified in JPO instruction");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 0, "Parity bit was set");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");    
+
+    cleanup_test_state(test_state);
+    return result; 
+}
+
+bool test_jpo_parity_set() {
+    State test_state = create_test_state(sizeof(uint8_t) * 10);
+    test_state.memory[0] = 0xe2; //JPO
+    test_state.memory[1] = 0x07;
+    test_state.memory[2] = 0x00;
+    test_state.memory[7] = 0xf1; //some random instruction
+    test_state.cc.p = 1;
+
+    Emulate8080(&test_state);
+
+    int result = 1;
+    result = result & assert_equals(test_state.pc, 0x03, "Program counter was jumped to address specified in JPO instruction");
+    result = result & assert_equals(test_state.cc.cy, 0, "Carry bit was set");
+    result = result & assert_equals(test_state.cc.p, 1, "Parity bit was reset");
+    result = result & assert_equals(test_state.cc.ac, 0, "Aux carry bit was set");
+    result = result & assert_equals(test_state.cc.s, 0, "Sign bit was set");
+    result = result & assert_equals(test_state.cc.z, 0, "Zero bit was set");    
+
+    cleanup_test_state(test_state);
+    return result;
+}
 
 int main(int argc, char** argv) {
     run_test_func(test_pchl, "Test PCHL");
@@ -236,4 +365,10 @@ int main(int argc, char** argv) {
     run_test_func(test_jz_zero_reset, "Test JZ zero reset");
     run_test_func(test_jnz_zero_reset, "Test JNZ zero reset");
     run_test_func(test_jnz_zero_set, "Test JNZ zero set");
+    run_test_func(test_jm_sign_set, "Test JM sign set");
+    run_test_func(test_jm_sign_reset, "Test JM sign reset");
+    run_test_func(test_jp_sign_reset, "Test JP sign reset");
+    run_test_func(test_jp_sign_set, "Test JP sign set");
+    run_test_func(test_jpo_parity_reset, "Test JPO parity reset");
+    run_test_func(test_jpo_parity_set, "Test JPO parity set");
 }

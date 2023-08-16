@@ -13,3 +13,9 @@ void jnc(State* state, uint8_t lower_address, uint8_t higher_address);
 void jz(State* state, uint8_t lower_address, uint8_t higher_address);
 
 void jnz(State* state, uint8_t lower_address, uint8_t higher_address);
+
+void jm(State* state, uint8_t lower_address, uint8_t higher_address);
+
+void jp(State* state, uint8_t lower_address, uint8_t higher_address);
+
+void jpo(State* state, uint8_t lower_address, uint8_t higher_address);

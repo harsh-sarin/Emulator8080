@@ -4,3 +4,8 @@
 SpaceInvaders
 out
 *.o
+input
+dissambler
+reference.txt
+
+.DS_Store
