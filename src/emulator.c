@@ -11,7 +11,7 @@
 #include "immediate_instructions.h"
 #include "direct_addressing.h"
 #include "jump_instructions.h"
-#include "disassembler.h"
+#include "call_subroutine.h"
 
 void UnimplementedInstruction(State *state)
 {
@@ -884,8 +884,8 @@ void Emulate8080(State *state)
     case 0xc3: //JMP
         jmp(state, opcode[1], opcode[2]);
         break;
-    case 0xc4:
-        UnimplementedInstruction(state);
+    case 0xc4: //CNZ
+        cnz(state, opcode[1], opcode[2]);
         break;
     case 0xc5: // PUSH B
         push_register_pair_to_stack(state, state->b, state->c);
@@ -909,11 +909,11 @@ void Emulate8080(State *state)
     case 0xcb:
         UnimplementedInstruction(state);
         break;
-    case 0xcc:
-        UnimplementedInstruction(state);
+    case 0xcc: //CZ
+        cz(state, opcode[1], opcode[2]);
         break;
-    case 0xcd:
-        UnimplementedInstruction(state);
+    case 0xcd: //CALL
+        call(state, opcode[1], opcode[2]);
         break;
     case 0xce: // ACI
         add_value_and_carry_to_accumulator(state, opcode[1]);
@@ -934,8 +934,8 @@ void Emulate8080(State *state)
     case 0xd3:
         UnimplementedInstruction(state);
         break;
-    case 0xd4:
-        UnimplementedInstruction(state);
+    case 0xd4: //CNC
+        cnc(state, opcode[1], opcode[2]);
         break;
     case 0xd5: // PUSH D
         push_register_pair_to_stack(state, state->d, state->e);
@@ -1009,8 +1009,8 @@ void Emulate8080(State *state)
     case 0xeb: // XCHG
         xchg(state);
         break;
-    case 0xec:
-        UnimplementedInstruction(state);
+    case 0xec: //CPE
+        cpe(state, opcode[1], opcode[2]);
         break;
     case 0xed:
         UnimplementedInstruction(state);
@@ -1057,8 +1057,8 @@ void Emulate8080(State *state)
     case 0xfb:
         UnimplementedInstruction(state);
         break;
-    case 0xfc:
-        UnimplementedInstruction(state);
+    case 0xfc: //CM
+        cm(state, opcode[1], opcode[2]);
         break;
     case 0xfd:
         UnimplementedInstruction(state);
@@ -1070,40 +1070,4 @@ void Emulate8080(State *state)
         UnimplementedInstruction(state);
         break;
     }
-}
-
-int main(int argc, char** argv) {
-	FILE *f = fopen(argv[1], "rb");
-	if (f == NULL) {
-		printf("Error: Failed to open %s\n", argv[1]);
-		exit(1);
-	}
-
-	fseek(f, 0L, SEEK_END);
-	int fsize = ftell(f);
-	fseek(f, 0L, SEEK_SET);	
-
-    printf("Initializing state...\n");
-    State state;
-    state.memory = (uint8_t *) malloc(fsize);
-    printf("Loading memory...\n");
-    fread(state.memory, fsize, 1, f);
-	fclose(f);
-    printf("Memory loaded...\n");
-    state.pc = 0x00;
-
-    ConditionCodes condition_codes;
-    state.cc = condition_codes;
-    state.cc.p = 0;
-    state.cc.z = 0;
-    state.cc.cy = 0;
-    state.cc.ac = 0;
-    state.cc.s = 0;
-    printf("State ready...\n");
-
-	while (state.pc < fsize) {
-        Disassemble8080p(state.memory, state.pc);
-		Emulate8080(&state);
-	}
-	return 0;
 }

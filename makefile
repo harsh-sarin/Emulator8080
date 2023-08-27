@@ -4,6 +4,9 @@ vpath %.o out
 
 includes_path = $(CURDIR)/include 
 
+clean:
+	rm ./out/*
+
 test: test-single-register test-data-transfer test-carry-bit test-register-to-acc test-rotate-acc  test-direct-addressing test-immediate test-register-pair-instructions test-jump
 
 test-single-register: emulator-combined.o
@@ -42,12 +45,22 @@ test-jump: emulator-combined.o
 				gcc -I$(includes_path) ./tests/test_jump_instructions.c ./out/emulator-combined.o -o ./out/test_jump_instructions
 				./out/test_jump_instructions
 
-emulate: emulator-combined.o
-				gcc ./out/emulator-combined.o -o ./out/emulate
+test-call-subroutine: emulator-combined.o
+				gcc -I$(includes_path) ./tests/test_call_subroutine.c ./out/emulator-combined.o -o ./out/test_call_subroutine
+				./out/test_call_subroutine
+
+emulate: emulator-combined.o main.o disassemble.o
+				gcc -r ./out/emulator-combined.o ./out/disassembler.o ./out/main.o -o ./out/emulate
 				./out/emulate ./input/invaders
 
-emulator-combined.o: emulator.o helper.o arithmetic_and_logical.o single_register.o register_pair_instructions.o immediate_instructions.o direct_addressing.o jump_instructions.o disassemble.o
-		gcc -r ./out/emulator.o ./out/helper.o ./out/arithmetic_and_logical.o ./out/single_register.o ./out/register_pair_instructions.o ./out/immediate_instructions.o ./out/direct_addressing.o ./out/jump_instructions.o ./out/disassembler.o -o ./out/emulator-combined.o
+main.o: main.c
+		gcc -I/$(includes_path) -c ./src/main.c -o ./out/main.o
+
+disassemble.o: disassembler.c
+		gcc -I/$(includes_path) -c ./src/disassembler.c -o ./out/disassembler.o
+
+emulator-combined.o: emulator.o helper.o arithmetic_and_logical.o single_register.o register_pair_instructions.o immediate_instructions.o direct_addressing.o jump_instructions.o call_subroutine.o
+		gcc -r ./out/emulator.o ./out/helper.o ./out/arithmetic_and_logical.o ./out/single_register.o ./out/register_pair_instructions.o ./out/immediate_instructions.o ./out/direct_addressing.o ./out/jump_instructions.o ./out/call_subroutine.o -o ./out/emulator-combined.o
  
 emulator.o: emulator.c
 		gcc -I$(includes_path) -c ./src/emulator.c -o ./out/emulator.o
@@ -73,8 +86,5 @@ direct_addressing.o: direct_addressing.c
 jump_instructions.o: jump_instructions.c
 		gcc -I/$(includes_path) -c ./src/instructions/jump_instructions.c -o ./out/jump_instructions.o
 
-disassemble.o: disassembler.c
-		gcc -I/$(includes_path) -c ./src/disassembler.c -o ./out/disassembler.o
-
-clean:
-	rm ./out/*
+call_subroutine.o: call_subroutine.c
+		gcc -I/$(includes_path) -c ./src/instructions/call_subroutine.c -o ./out/call_subroutine.o
