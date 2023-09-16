@@ -7,5 +7,6 @@ out
 input
 dissambler
 reference.txt
+out.txt
 
 .DS_Store

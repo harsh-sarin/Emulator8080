@@ -12,6 +12,8 @@
 #include "direct_addressing.h"
 #include "jump_instructions.h"
 #include "call_subroutine.h"
+#include "return_instructions.h"
+#include "interrupt_instructions.h"
 
 void UnimplementedInstruction(State *state)
 {
@@ -24,7 +26,7 @@ void Emulate8080(State *state)
     unsigned char *opcode = &state->memory[state->pc];
     switch (*opcode)
     {
-    case 0x00:
+    case 0x00: //NOP
         state->pc += 1;
         break;
     case 0x01: // LXI B,immediate data
@@ -58,8 +60,8 @@ void Emulate8080(State *state)
         state->pc += 1;
     }
     break;
-    case 0x08:
-        UnimplementedInstruction(state);
+    case 0x08: //NOP
+        state->pc += 1;
         break;
     case 0x09: // DAD B
         dad(state, state->b, state->c);
@@ -92,8 +94,8 @@ void Emulate8080(State *state)
             state->pc += 1;
         }
         break;
-    case 0x10:
-        UnimplementedInstruction(state);
+    case 0x10: //NOP
+        state->pc += 1;
         break;
     case 0x11: // LXI D,immediate data
         lxi(state, &state->d, &state->e, opcode[2], opcode[1]);
@@ -127,8 +129,8 @@ void Emulate8080(State *state)
             state->pc += 1;
         }
         break;
-    case 0x18:
-        UnimplementedInstruction(state);
+    case 0x18: //NOP
+        state->pc += 1;
         break;
     case 0x19: // DAD D
         dad(state, state->d, state->e);
@@ -162,8 +164,8 @@ void Emulate8080(State *state)
             state->pc += 1;
         }
         break;
-    case 0x20:
-        UnimplementedInstruction(state);
+    case 0x20: //NOP
+        state->pc += 1;
         break;
     case 0x21: // LXI H,immediate data
         lxi(state, &state->h, &state->l, opcode[2], opcode[1]);
@@ -221,8 +223,8 @@ void Emulate8080(State *state)
         state->pc += 1;
     }
     break;
-    case 0x28:
-        UnimplementedInstruction(state);
+    case 0x28: //NOP
+        state->pc += 1;
         break;
     case 0x29: // DAD H
         dad(state, state->h, state->l);
@@ -248,8 +250,8 @@ void Emulate8080(State *state)
         state->a = ~state->a;
         state->pc += 1;
         break;
-    case 0x30:
-        UnimplementedInstruction(state);
+    case 0x30: //NOP
+        state->pc += 1;
         break;
     case 0x31: // LXI SP,immediate data
         lxi_sp(state, opcode[2], opcode[1]);
@@ -275,8 +277,8 @@ void Emulate8080(State *state)
         state->cc.cy = 1;
         state->pc += 1;
         break;
-    case 0x38:
-        UnimplementedInstruction(state);
+    case 0x38: //NOP
+        state->pc += 1;
         break;
     case 0x39: // DAD SP
         dad(state, ((state->sp & 0xff00) >> 8), (state->sp & 0x00ff));
@@ -872,8 +874,8 @@ void Emulate8080(State *state)
         cmp(state, state->a);
         state->pc += 1;
         break;
-    case 0xc0:
-        UnimplementedInstruction(state);
+    case 0xc0: //RNZ
+        rnz(state);
         break;
     case 0xc1: // POP B
         pop_from_stack_to_register_pair(state, &state->b, &state->c);
@@ -897,11 +899,11 @@ void Emulate8080(State *state)
     case 0xc7:
         UnimplementedInstruction(state);
         break;
-    case 0xc8:
-        UnimplementedInstruction(state);
+    case 0xc8: //RZ
+        rz(state);
         break;
-    case 0xc9:
-        UnimplementedInstruction(state);
+    case 0xc9: //RET
+        ret(state);
         break;
     case 0xca: // JZ
         jz(state, opcode[1], opcode[2]);
@@ -919,11 +921,11 @@ void Emulate8080(State *state)
         add_value_and_carry_to_accumulator(state, opcode[1]);
         state->pc += 2;
         break;
-    case 0xcf:
-        UnimplementedInstruction(state);
+    case 0xcf: //RST 1
+        rst(state, 0xcf);
         break;
-    case 0xd0:
-        UnimplementedInstruction(state);
+    case 0xd0: //RNC
+        rnc(state);
         break;
     case 0xd1: // POP D
         pop_from_stack_to_register_pair(state, &state->d, &state->e);
@@ -947,8 +949,8 @@ void Emulate8080(State *state)
     case 0xd7:
         UnimplementedInstruction(state);
         break;
-    case 0xd8:
-        UnimplementedInstruction(state);
+    case 0xd8: //RC
+        rc(state);
         break;
     case 0xd9:
         UnimplementedInstruction(state);
@@ -972,8 +974,8 @@ void Emulate8080(State *state)
     case 0xdf:
         UnimplementedInstruction(state);
         break;
-    case 0xe0:
-        UnimplementedInstruction(state);
+    case 0xe0: //RPO
+        rpo(state);
         break;
     case 0xe1: // POP H
         pop_from_stack_to_register_pair(state, &state->h, &state->l);
@@ -1021,8 +1023,8 @@ void Emulate8080(State *state)
     case 0xef:
         UnimplementedInstruction(state);
         break;
-    case 0xf0:
-        UnimplementedInstruction(state);
+    case 0xf0: //RP
+        rp(state);
         break;
     case 0xf1: // POP PSW
         pop_psw(state);
@@ -1030,8 +1032,8 @@ void Emulate8080(State *state)
     case 0xf2: //JP
         jp(state, opcode[1], opcode[2]);
         break;
-    case 0xf3:
-        UnimplementedInstruction(state);
+    case 0xf3: //DI
+        update_inte(state, false);
         break;
     case 0xf4:
         UnimplementedInstruction(state);
@@ -1045,8 +1047,8 @@ void Emulate8080(State *state)
     case 0xf7:
         UnimplementedInstruction(state);
         break;
-    case 0xf8:
-        UnimplementedInstruction(state);
+    case 0xf8: //RM
+        rm(state);
         break;
     case 0xf9: // SPHL
         sphl(state);
@@ -1054,8 +1056,8 @@ void Emulate8080(State *state)
     case 0xfa: //JM
         jm(state, opcode[1], opcode[2]);
         break;
-    case 0xfb:
-        UnimplementedInstruction(state);
+    case 0xfb: //EI
+        update_inte(state, true);
         break;
     case 0xfc: //CM
         cm(state, opcode[1], opcode[2]);
@@ -1066,8 +1068,8 @@ void Emulate8080(State *state)
     case 0xfe: // CPI
         cpi(state, opcode[1]);
         break;
-    case 0xff:
-        UnimplementedInstruction(state);
+    case 0xff: //RST 7
+        rst(state, 0xff);
         break;
     }
 }

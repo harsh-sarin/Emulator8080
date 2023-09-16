@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <stdio.h>
 #include "domain.h"
 #include "disassembler.h"
 #include "emulator.h"

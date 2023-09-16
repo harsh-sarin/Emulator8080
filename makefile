@@ -7,7 +7,7 @@ includes_path = $(CURDIR)/include
 clean:
 	rm ./out/*
 
-test: test-single-register test-data-transfer test-carry-bit test-register-to-acc test-rotate-acc  test-direct-addressing test-immediate test-register-pair-instructions test-jump
+test: test-single-register test-data-transfer test-carry-bit test-register-to-acc test-rotate-acc  test-direct-addressing test-immediate test-register-pair-instructions test-call-subroutine test-jump test-return test-interrupt
 
 test-single-register: emulator-combined.o
 				gcc -I$(includes_path) ./tests/testSingleRegisterInstructions.c ./out/emulator-combined.o  -o ./out/testSingleRegisterInstructions
@@ -49,18 +49,23 @@ test-call-subroutine: emulator-combined.o
 				gcc -I$(includes_path) ./tests/test_call_subroutine.c ./out/emulator-combined.o -o ./out/test_call_subroutine
 				./out/test_call_subroutine
 
-emulate: emulator-combined.o main.o disassemble.o
-				gcc -r ./out/emulator-combined.o ./out/disassembler.o ./out/main.o -o ./out/emulate
-				./out/emulate ./input/invaders
+test-return: emulator-combined.o
+				gcc -I$(includes_path) ./tests/test_return_instructions.c ./out/emulator-combined.o -o ./out/test_return_instructions
+				./out/test_return_instructions
 
-main.o: main.c
-		gcc -I/$(includes_path) -c ./src/main.c -o ./out/main.o
+test-interrupt: emulator-combined.o
+				gcc -I$(includes_path) ./tests/test_interrupt_instructions.c ./out/emulator-combined.o -o ./out/test_interrupt_instructions
+				./out/test_interrupt_instructions
+
+emulate: main.c emulator-combined.o disassemble.o
+			gcc -I$(includes_path) ./src/main.c ./out/emulator-combined.o ./out/disassembler.o -o ./out/emulate
+			./out/emulate ./input/invaders
 
 disassemble.o: disassembler.c
 		gcc -I/$(includes_path) -c ./src/disassembler.c -o ./out/disassembler.o
 
-emulator-combined.o: emulator.o helper.o arithmetic_and_logical.o single_register.o register_pair_instructions.o immediate_instructions.o direct_addressing.o jump_instructions.o call_subroutine.o
-		gcc -r ./out/emulator.o ./out/helper.o ./out/arithmetic_and_logical.o ./out/single_register.o ./out/register_pair_instructions.o ./out/immediate_instructions.o ./out/direct_addressing.o ./out/jump_instructions.o ./out/call_subroutine.o -o ./out/emulator-combined.o
+emulator-combined.o: emulator.o helper.o arithmetic_and_logical.o single_register.o register_pair_instructions.o immediate_instructions.o direct_addressing.o jump_instructions.o call_subroutine.o return_instructions.o interrupt_instructions.o
+		gcc -r ./out/emulator.o ./out/helper.o ./out/arithmetic_and_logical.o ./out/single_register.o ./out/register_pair_instructions.o ./out/immediate_instructions.o ./out/direct_addressing.o ./out/jump_instructions.o ./out/call_subroutine.o ./out/return_instructions.o ./out/interrupt_instructions.o -o ./out/emulator-combined.o
  
 emulator.o: emulator.c
 		gcc -I$(includes_path) -c ./src/emulator.c -o ./out/emulator.o
@@ -88,3 +93,9 @@ jump_instructions.o: jump_instructions.c
 
 call_subroutine.o: call_subroutine.c
 		gcc -I/$(includes_path) -c ./src/instructions/call_subroutine.c -o ./out/call_subroutine.o
+
+return_instructions.o: return_instructions.c
+		gcc -I/$(includes_path) -c ./src/instructions/return_instructions.c -o ./out/return_instructions.o
+
+interrupt_instructions.o: interrupt_instructions.c
+		gcc -I/$(includes_path) -c ./src/instructions/interrupt_instructions.c -o ./out/interrupt_instructions.o
