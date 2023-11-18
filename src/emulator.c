@@ -14,6 +14,7 @@
 #include "call_subroutine.h"
 #include "return_instructions.h"
 #include "interrupt_instructions.h"
+#include "in_out_instructions.h"
 
 void UnimplementedInstruction(State *state)
 {
@@ -550,9 +551,9 @@ void Emulate8080(State *state)
             state->pc += 1;
         }
         break;
-    case 0x76:
-        UnimplementedInstruction(state);
-        break;
+    case 0x76: //HLT
+        //TODO: Implement this correctly.
+        exit(EXIT_SUCCESS);
     case 0x77: // MOV M,A
         {
             uint16_t memory_location = (state->h << 8) | (state->l);
@@ -933,8 +934,8 @@ void Emulate8080(State *state)
     case 0xd2: // JNC
         jnc(state, opcode[1], opcode[2]);
         break;
-    case 0xd3:
-        UnimplementedInstruction(state);
+    case 0xd3: //OUT
+        out(state, opcode[1]);
         break;
     case 0xd4: //CNC
         cnc(state, opcode[1], opcode[2]);
@@ -958,8 +959,8 @@ void Emulate8080(State *state)
     case 0xda: //JC
         jc(state, opcode[1], opcode[2]);
         break;
-    case 0xdb:
-        UnimplementedInstruction(state);
+    case 0xdb: //IN
+        in(state, opcode[1]);
         break;
     case 0xdc:
         UnimplementedInstruction(state);

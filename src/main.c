@@ -34,7 +34,8 @@ int main(int argc, char** argv) {
     state.cc.s = 0;
     printf("State ready...\n");
 
-	while (state.pc < fsize) {
+    int limiter = 100000;
+	while (state.pc < fsize && limiter-- > 0) {
         Disassemble8080p(state.memory, state.pc);
 		Emulate8080(&state);
 	}
